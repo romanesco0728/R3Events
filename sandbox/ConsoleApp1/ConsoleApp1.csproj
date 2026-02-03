@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IncrementalSourceGeneratorStudy\IncrementalSourceGeneratorStudy.csproj">
+    <ProjectReference Include="..\src\IncrementalSourceGeneratorStudy\IncrementalSourceGeneratorStudy.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

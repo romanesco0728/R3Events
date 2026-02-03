@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/sandbox/">
-    <Project Path="ConsoleApp1/ConsoleApp1.csproj" Id="c9fa4823-8c11-426f-8fef-13adb58b7528" />
-    <Project Path="ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" Id="1f907d75-a62b-4991-8d25-f57d23880c1c" />
+    <Project Path="sandbox/ConsoleApp1/ConsoleApp1.csproj" Id="c9fa4823-8c11-426f-8fef-13adb58b7528" />
+    <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" Id="1f907d75-a62b-4991-8d25-f57d23880c1c" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/IncrementalSourceGeneratorStudy/IncrementalSourceGeneratorStudy.csproj" />
