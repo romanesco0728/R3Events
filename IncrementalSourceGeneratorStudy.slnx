@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="ConsoleApp1/ConsoleApp1.csproj" Id="c9fa4823-8c11-426f-8fef-13adb58b7528" />
   <Project Path="IncrementalSourceGeneratorStudy/IncrementalSourceGeneratorStudy.csproj" />
 </Solution>
