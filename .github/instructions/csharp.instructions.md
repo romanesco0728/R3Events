@@ -28,17 +28,31 @@ applyTo: '**/*.cs'
 - For automatically generated source produced by source generators, use the traditional block-style namespace declaration (e.g., `namespace X.Y { ... }`). Generated files MUST use block-style namespaces to avoid edge cases when merging partial types and to maximize compatibility with various compiler and IDE behaviors.
 
 - Using directives in generated files:
-  - Place `using` directives inside the namespace block in generated files and indent them once (4 spaces) to clearly associate them with the generated namespace.
-  - Use single-line using directives (one namespace per using statement). Example inside a generated file:
+  - Generated files MUST NOT contain `using` directives. Generated code should reference types using their fully-qualified names starting with `global::`. This avoids ambiguity and ensures generated code is independent of the surrounding user code's `using` directives.
+  - As a rule of thumb, do not emit any `using` statements in automatically generated files. If a generator must include `using` directives as a last resort for readability, those `using` directives should be placed inside the namespace block and indented once (4 spaces); however, prefer fully-qualified `global::` names for public API types and for any types that might collide.
+  - Example of a generated file that does not use `using` directives:
 
     namespace MyApp.Generated
     {
-        using global::System;
-        using global::System.Threading;
-
         internal static partial class MyExtensions
         {
-            // ...generated members...
+            public static global::R3.Observable<global::System.String> EventNameAsObservable(this global::MyApp.TargetType instance)
+            {
+                // ...generated members...
+            }
+        }
+    }
+
+- When generating additional partial declarations for an existing partial type:
+  - Do not emit an accessibility modifier (e.g., `public`, `internal`, `private`, `protected`) on the generated partial type declaration. Leave the access level to be determined by the hand-authored declaration to avoid accidental accessibility mismatches.
+  - Example:
+
+    namespace MyApp.Generated
+    {
+        // Note: no 'public' or 'internal' on the generated partial type declaration
+        static partial class Helpers
+        {
+            // generated members...
         }
     }
 
