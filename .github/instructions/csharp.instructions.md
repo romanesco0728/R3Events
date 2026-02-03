@@ -30,6 +30,25 @@ applyTo: '**/*.cs'
 - Use pattern matching and switch expressions wherever possible.
 - Use `nameof` instead of string literals when referring to member names.
 - Ensure that XML doc comments are created for any public APIs. When applicable, include `<example>` and `<code>` documentation in the comments.
+- When generating multi-line string source (e.g., generated C# files or embedded code templates), prefer to use C# raw string literals (triple-quoted) to improve readability and reduce escaping. When the template needs to embed values from generator variables, prefer the interpolated raw string literal form that starts with `$$"""` and uses `{{variableName}}` placeholders inside the literal. Example:
+
+```csharp
+var code = $$"""
+namespace Generated
+{
+    public static partial class {{ClassName}}
+    {
+        public static void Hello() => System.Console.WriteLine("{{Message}}");
+    }
+}
+""";
+```
+
+Notes:
+- The closing delimiter of a raw string literal must be placed on its own line and have the same indentation as the opening delimiter.
+- When a literal must contain a literal `{` or `}` that should not be interpreted as a placeholder, escape it by doubling (`{{` or `}}`).
+- Ensure the generator targets a C# language version that supports interpolated raw string literals; if the target environment does not support them, fall back to interpolated verbatim strings (`@$"..."`) as a compatibility measure.
+- Keep generated code references fully-qualified with `global::` for public API types as required by the project-wide global-prefix rule.
 
 ## Project Setup and Structure
 
