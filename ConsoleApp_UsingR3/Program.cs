@@ -29,6 +29,6 @@ static class C1Extensions
             h => c1.MyEvent2 -= h,
             cancellationToken
             );
-        return rawObservable.Select(ep => ep.Args);
+        return ObservableExtensions.Select(rawObservable, ep => ep.Args);
     }
 }
