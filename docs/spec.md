@@ -6,7 +6,10 @@
 
 2. 属性: Events.R3.R3EventAttribute
 
-- 種別: `global::System.Attribute` を継承する public の sealed クラス
+- 種別: `global::System.Attribute` を継承する internal の sealed クラス
+- 適用対象: 本属性はクラスにのみ付加可能とする。生成コードでは
+  `global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)`
+  のように指定して出力すること。
 - 名前空間: `Events.R3`（生成コードで namespace に合わせる）
 - コンストラクタ: `public R3EventAttribute(global::System.Type type)` — 対象の型を指定
 - プロパティ: `public global::System.Type Type { get; }`
@@ -35,7 +38,7 @@
 
 - 生成コードは null 許容参照型を尊重する。
 - 生成コードでは公開 API に `global::` プレフィックスを用いる。
-- 生成コードはファイルスコープの namespace を使用し、XML ドキュメントコメントを付与する。
+- 生成コードは従来のブロック形式の namespace（namespace XXX { ... }）を使用し、XML ドキュメントコメントを付与する。
 
 6. 依存関係
 
