@@ -23,31 +23,77 @@ applyTo: '**/*.cs'
 
 ## Formatting
 
-- Apply code-formatting style defined in `.editorconfig`.
-- Prefer file-scoped namespace declarations and single-line using directives.
+- Prefer file-scoped namespace declarations for regular (hand-authored) source files.
+
+- For automatically generated source produced by source generators, use the traditional block-style namespace declaration (e.g., `namespace X.Y { ... }`). Generated files MUST use block-style namespaces to avoid edge cases when merging partial types and to maximize compatibility with various compiler and IDE behaviors.
+
+- Using directives in generated files:
+  - Place `using` directives inside the namespace block in generated files and indent them once (4 spaces) to clearly associate them with the generated namespace.
+  - Use single-line using directives (one namespace per using statement). Example inside a generated file:
+
+    namespace MyApp.Generated
+    {
+        using global::System;
+        using global::System.Threading;
+
+        internal static partial class MyExtensions
+        {
+            // ...generated members...
+        }
+    }
+
 - Insert a newline before the opening curly brace of any code block (e.g., after `if`, `for`, `while`, `foreach`, `using`, `try`, etc.).
+
 - Ensure that the final return statement of a method is on its own line.
+
 - Use pattern matching and switch expressions wherever possible.
+
 - Use `nameof` instead of string literals when referring to member names.
+
 - Ensure that XML doc comments are created for any public APIs. When applicable, include `<example>` and `<code>` documentation in the comments.
-- When generating multi-line string source (e.g., generated C# files or embedded code templates), prefer to use C# raw string literals (triple-quoted) to improve readability and reduce escaping. When the template needs to embed values from generator variables, prefer the interpolated raw string literal form that starts with `$$"""` and uses `{{variableName}}` placeholders inside the literal. Example:
+
+- When generating multi-line string source (e.g., generated C# files or embedded code templates), follow these explicit rules:
+  1. If the template does not need to embed any generator variables, prefer a plain raw string literal that starts and ends with triple quotes (`"""`). Example:
 
 ```csharp
-var code = $$"""
+var code = """
 namespace Generated
 {
-    public static partial class {{ClassName}}
+    internal static partial class Helpers
     {
-        public static void Hello() => System.Console.WriteLine("{{Message}}");
+        // simple generated content without interpolation
     }
 }
 """;
 ```
 
-Notes:
-- The closing delimiter of a raw string literal must be placed on its own line and have the same indentation as the opening delimiter.
-- When a literal must contain a literal `{` or `}` that should not be interpreted as a placeholder, escape it by doubling (`{{` or `}}`).
-- Ensure the generator targets a C# language version that supports interpolated raw string literals; if the target environment does not support them, fall back to interpolated verbatim strings (`@$"..."`) as a compatibility measure.
+  2. If the template needs to embed values from generator variables, use an interpolated raw string literal that starts with `$$"""` and ends with `"""`, and embed variables using `{{variableName}}` placeholders. Example:
+
+```csharp
+var code = $$"""
+namespace {{Namespace}}
+{
+    using global::System;
+
+    {{Accessibility}} static partial class {{ClassName}}
+    {
+        /// <summary>
+        /// Generated extensions for {{TargetType}}
+        /// </summary>
+        public static global::R3.Observable<{{T}}> {{EventName}}AsObservable(this {{TargetType}} instance)
+        {
+            // implementation
+        }
+    }
+}
+""";
+```
+
+- Notes for raw string literals in generators:
+  - The closing delimiter of a raw string literal must be placed on its own line and have the same indentation as the opening delimiter.
+  - When a literal must contain a literal `{` or `}` that should not be interpreted as a placeholder, escape it by doubling (`{{` or `}}`).
+  - Ensure the generator targets a C# language version that supports interpolated raw string literals; if the target environment does not support them, fall back to interpolated verbatim strings (`@$"..."`) as a compatibility measure.
+
 - Keep generated code references fully-qualified with `global::` for public API types as required by the project-wide global-prefix rule.
 
 ## Project Setup and Structure
