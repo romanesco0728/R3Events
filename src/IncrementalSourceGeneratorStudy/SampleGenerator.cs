@@ -10,56 +10,42 @@ public partial class SampleGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Emit the R3EventAttribute definition in post-initialization
         context.RegisterPostInitializationOutput(EmitDefaultAttribute);
 
-        // Find class declarations that have attributes (candidate for the R3EventAttribute)
-        var classWithAttributes = context.SyntaxProvider.CreateSyntaxProvider(
-            predicate: static (s, _) => s is ClassDeclarationSyntax cds && cds.AttributeLists.Count > 0,
-            transform: static (ctx, _) =>
-            {
-                var classDecl = (ClassDeclarationSyntax)ctx.Node;
-                var classSymbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
-                if (classSymbol == null)
-                    return default((INamedTypeSymbol? ClassSymbol, INamedTypeSymbol? TargetType));
-
-                // Look for Events.R3.R3EventAttribute on the class
-                foreach (var attrib in classSymbol.GetAttributes())
+        // Use ForAttributeWithMetadataName to efficiently find classes decorated with R3EventAttribute
+        var attributedClasses = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "Events.R3.R3EventAttribute",
+                predicate: static (node, _) => node is ClassDeclarationSyntax,
+                transform: static (ctx, _) =>
                 {
-                    var attrClass = attrib.AttributeClass;
-                    if (attrClass == null)
-                        continue;
+                    var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+                    var attrib = ctx.Attributes[0];
 
-                    // match by metadata name to be robust even when attribute is generated in post-init
-                    if (attrClass.ToDisplayString() == "Events.R3.R3EventAttribute")
+                    // Extract the target type from the attribute constructor argument
+                    if (attrib.ConstructorArguments.Length == 1)
                     {
-                        // Expect one constructor argument: typeof(TargetType)
-                        if (attrib.ConstructorArguments.Length == 1)
+                        var arg = attrib.ConstructorArguments[0];
+                        if (arg.Value is INamedTypeSymbol targetTypeSymbol)
                         {
-                            var arg = attrib.ConstructorArguments[0];
-                            if (arg.Value is INamedTypeSymbol targetTypeSymbol)
-                            {
-                                return (ClassSymbol: classSymbol, TargetType: targetTypeSymbol);
-                            }
+                            return (ClassSymbol: classSymbol, TargetType: targetTypeSymbol);
                         }
                     }
-                }
 
-                return default((INamedTypeSymbol? ClassSymbol, INamedTypeSymbol? TargetType));
-            })
+                    return (ClassSymbol: (INamedTypeSymbol?)null, TargetType: (INamedTypeSymbol?)null);
+                })
             .Where(static m => m.ClassSymbol is not null && m.TargetType is not null);
 
-        // Collect and generate source
-        var collected = classWithAttributes.Collect();
-        var compilationAndItems = context.CompilationProvider.Combine(collected);
+        // Combine with compilation and generate source output
+        var compilationAndItems = context.CompilationProvider.Combine(attributedClasses.Collect());
         context.RegisterSourceOutput(compilationAndItems, static (spc, pair) =>
         {
             var compilation = pair.Left;
-            var items = pair.Right; // ImmutableArray<(INamedTypeSymbol? ClassSymbol, INamedTypeSymbol? TargetType)>
-            foreach (var item in items)
+            var items = pair.Right;
+            foreach (var (classSymbol, targetType) in items)
             {
-                var classSymbol = item.ClassSymbol;
-                var targetType = item.TargetType;
-                if (classSymbol == null || targetType == null)
+                if (classSymbol is null || targetType is null)
                     continue;
 
                 //var generatedNamespace = "Events.R3.Generated";
