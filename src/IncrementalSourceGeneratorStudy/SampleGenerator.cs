@@ -103,16 +103,9 @@ namespace Events.R3
         var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } &&
             eventType.ContainingNamespace?.Name is "System" &&
             eventType.MetadataName is "EventHandler";
-        var isGenericSystemEventHandler = eventType is { IsGenericType: true } &&
-            eventType.ConstructedFrom?.ContainingNamespace?.Name is "System" &&
-            eventType.ConstructedFrom?.MetadataName is "EventHandler`1";
         if (isNonGenericSystemEventHandler)
         {
             // unit
-        }
-        else if (isGenericSystemEventHandler)
-        {
-            payloadType = eventType!.TypeArguments[0];
         }
         else
         {
