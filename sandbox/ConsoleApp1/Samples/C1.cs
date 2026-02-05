@@ -4,6 +4,9 @@ namespace ConsoleApp1.Samples;
 
 internal class C1
 {
-    public event EventHandler? MyEvent1;
-    public event CancelEventHandler? MyEvent2;
+#nullable disable
+    public event EventHandler MyEvent1;
+#nullable restore
+    public event EventHandler? MyEvent2;
+    public event CancelEventHandler? MyCancelEvent1;
 }

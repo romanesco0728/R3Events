@@ -19,7 +19,7 @@ static class C1Extensions
             h => c1.MyEvent1 -= h,
             cancellationToken
             );
-        return rawObservable.AsUnitObservable();
+        return ObservableExtensions.AsUnitObservable(rawObservable);
     }
     public static Observable<CancelEventArgs> MyEvent2AsObservable(this C1 c1, CancellationToken cancellationToken = default)
     {
