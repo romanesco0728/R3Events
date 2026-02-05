@@ -79,7 +79,8 @@ namespace Events.R3
             ClassNamespace: classNamespace,
             ClassName: className,
             GeneratedMethods: generatedMethods,
-            TargetTypeFullName: targetTypeFullName
+            TargetTypeFullName: targetTypeFullName,
+            new(classSymbol)
         );
     }
 
@@ -149,16 +150,8 @@ namespace Events.R3
 
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
     {
-        // Namespace of the attribute-bearing class. Empty for global namespace.
-        var classNamespace = item.ClassNamespace;
-        var className = item.ClassName;
-
-        // File name: <namespace>.<ClassName>.g.cs (or <ClassName>.g.cs for global namespace)
-        var fileName = string.IsNullOrEmpty(classNamespace)
-            ? $"{className}.g.cs"
-            : $"{classNamespace}.{className}.g.cs";
-
-        spc.AddSource(fileName, SourceText.From(GenerateSource(item), Encoding.UTF8));
+        var hintName = $"{item.HintBaseName}.g.cs";
+        spc.AddSource(hintName, SourceText.From(GenerateSource(item), Encoding.UTF8));
     }
 
     private static string GenerateSource(ParsedProperty item)
@@ -265,6 +258,13 @@ static partial class {{className}}
         string ClassNamespace,
         string ClassName,
         System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> GeneratedMethods,
-        string TargetTypeFullName
-        );
+        string TargetTypeFullName,
+        IgnoreEquality<INamedTypeSymbol> ClassSymbol
+        )
+    {
+        public string HintBaseName => ClassSymbol.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace("global::", "")
+            .Replace("<", "_")
+            .Replace(">", "_");
+    }
 }
