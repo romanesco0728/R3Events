@@ -65,16 +65,22 @@ namespace Events.R3
         var attrib = ctx.Attributes[0];
         var arg = attrib.ConstructorArguments[0];
         var targetTypeSymbol = (INamedTypeSymbol)arg.Value!;
-        return new(ClassSymbol: classSymbol, TargetType: targetTypeSymbol);
+
+        // Extract method information from the target type
+        var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
+        var targetTypeFullName = targetTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return new(
+            ClassSymbol: classSymbol,
+            TargetType: targetTypeSymbol,
+            GeneratedMethods: generatedMethods,
+            TargetTypeFullName: targetTypeFullName
+        );
     }
 
-    private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
+    private static System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType)
     {
-        var (_, targetType) = item;
-
-        //var generatedNamespace = "Events.R3.Generated";
-        // Build methods using interpolated verbatim strings for compatibility
-        var methodsBuilder = new StringBuilder();
+        var methods = System.Collections.Immutable.ImmutableArray.CreateBuilder<GeneratedMethodInfo>();
 
         foreach (var member in targetType.GetMembers())
         {
@@ -123,20 +129,36 @@ namespace Events.R3
                 observableElementType = "global::System.Object";
             }
 
-            var eventName = ev.Name;
-            var targetTypeDisplay = targetType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
 
-            if (useAsUnit)
+            methods.Add(new GeneratedMethodInfo(
+                EventName: ev.Name,
+                ObservableElementType: observableElementType,
+                UseAsUnit: useAsUnit,
+                DelegateType: delegateTypeDisplay
+            ));
+        }
+
+        return methods.ToImmutable();
+    }
+
+    private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
+    {
+        var methodsBuilder = new StringBuilder();
+
+        foreach (var methodInfo in item.GeneratedMethods)
+        {
+            if (methodInfo.UseAsUnit)
             {
                 var method = $$"""
                                 /// <summary>
-                                /// Returns an Observable for <c>{{eventName}}</c>.
+                                /// Returns an Observable for <c>{{methodInfo.EventName}}</c>.
                                 /// </summary>
-                                public static global::R3.Observable<{{observableElementType}}> {{eventName}}AsObservable(this {{targetTypeDisplay}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+                                public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
                                 {
                                     var rawObservable = global::R3.Observable.FromEventHandler(
-                                        h => instance.{{eventName}} += h,
-                                        h => instance.{{eventName}} -= h,
+                                        h => instance.{{methodInfo.EventName}} += h,
+                                        h => instance.{{methodInfo.EventName}} -= h,
                                         cancellationToken
                                         );
                                     return rawObservable.AsUnitObservable();
@@ -146,18 +168,16 @@ namespace Events.R3
             }
             else
             {
-                var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
-
                 var method = $$"""
         /// <summary>
-        /// Returns an Observable for <c>{{eventName}}</c>.
+        /// Returns an Observable for <c>{{methodInfo.EventName}}</c>.
         /// </summary>
-        public static global::R3.Observable<{{observableElementType}}> {{eventName}}AsObservable(this {{targetTypeDisplay}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+        public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var rawObservable = global::R3.Observable.FromEvent<{{delegateTypeDisplay}}, (global::System.Object?, {{observableElementType}} Args)>(
-                static h => new {{delegateTypeDisplay}}((s, e) => h((s, e))),
-                h => instance.{{eventName}} += h,
-                h => instance.{{eventName}} -= h,
+            var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType}}, (global::System.Object?, {{methodInfo.ObservableElementType}} Args)>(
+                static h => new {{methodInfo.DelegateType}}((s, e) => h((s, e))),
+                h => instance.{{methodInfo.EventName}} += h,
+                h => instance.{{methodInfo.EventName}} -= h,
                 cancellationToken
                 );
             return global::R3.ObservableExtensions.Select(rawObservable, ep => ep.Args);
@@ -204,7 +224,16 @@ static partial class {{className}}
         spc.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8));
     }
 
-    private sealed record ParsedProperty(INamedTypeSymbol ClassSymbol, INamedTypeSymbol TargetType)
+    /// <summary>
+    /// Represents metadata about a generated Observable extension method.
+    /// </summary>
+    private sealed record GeneratedMethodInfo(string EventName, string ObservableElementType, bool UseAsUnit, string DelegateType);
+
+    private sealed record ParsedProperty(
+        INamedTypeSymbol ClassSymbol,
+        INamedTypeSymbol TargetType,
+        System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> GeneratedMethods,
+        string TargetTypeFullName)
     {
         /// <summary>
         /// Gets the fully qualified namespace of the class represented by this instance.
@@ -217,6 +246,7 @@ static partial class {{className}}
                 return containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
             }
         }
+
         /// <summary>
         /// Gets the name of the class represented by this symbol.
         /// </summary>
