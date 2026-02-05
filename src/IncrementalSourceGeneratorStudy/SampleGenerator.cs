@@ -79,8 +79,6 @@ namespace Events.R3
         foreach (var member in targetType.GetMembers())
         {
             if (member is not IEventSymbol { DeclaredAccessibility: Accessibility.Public } ev) continue;
-            //if (member is not IEventSymbol ev || ev.DeclaredAccessibility != Accessibility.Public)
-            //    continue;
 
             var eventType = ev.Type as INamedTypeSymbol;
             ITypeSymbol? payloadType = null;
@@ -99,8 +97,7 @@ namespace Events.R3
                 if (invoke != null)
                 {
                     var ps = invoke.Parameters;
-                    if (ps.Length >= 1)
-                        payloadType = ps[ps.Length - 1].Type;
+                    if (ps.Length >= 1) payloadType = ps[^1].Type;
                 }
             }
 
@@ -119,8 +116,7 @@ namespace Events.R3
             }
             else if (payloadType is not null)
             {
-                var payloadDisplay = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                observableElementType = payloadDisplay;
+                observableElementType = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             }
             else
             {
@@ -151,8 +147,6 @@ namespace Events.R3
             else
             {
                 var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
-                var payloadTypeDisplay = observableElementType;
-                var tupleType = $"(object?, {payloadTypeDisplay} Args)";
 
                 var method = $$"""
         /// <summary>
@@ -160,7 +154,7 @@ namespace Events.R3
         /// </summary>
         public static global::R3.Observable<{{observableElementType}}> {{eventName}}AsObservable(this {{targetTypeDisplay}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var rawObservable = global::R3.Observable.FromEvent<{{delegateTypeDisplay}}, {{tupleType}}>(
+            var rawObservable = global::R3.Observable.FromEvent<{{delegateTypeDisplay}}, (global::System.Object?, {{observableElementType}} Args)>(
                 static h => new {{delegateTypeDisplay}}((s, e) => h((s, e))),
                 h => instance.{{eventName}} += h,
                 h => instance.{{eventName}} -= h,
