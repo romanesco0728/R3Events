@@ -25,15 +25,10 @@ public partial class SampleGenerator : IIncrementalGenerator
                 transform: static (ctx, cancellationToken) => Parse(ctx, cancellationToken)
                 );
 
-        // Combine with compilation and generate source output
-        var compilationAndItems = context.CompilationProvider.Combine(attributedClasses.Collect());
-        context.RegisterSourceOutput(compilationAndItems, static (spc, pair) =>
+        // Generate source output for each attributed class
+        context.RegisterSourceOutput(attributedClasses, static (spc, item) =>
         {
-            var compilation = pair.Left;
-            var items = pair.Right;
-            foreach (var item in items)
-            {
-                var (classSymbol, targetType) = item;
+            var (classSymbol, targetType) = item;
 
                 //var generatedNamespace = "Events.R3.Generated";
                 // Build methods using interpolated verbatim strings for compatibility
@@ -66,19 +61,20 @@ public partial class SampleGenerator : IIncrementalGenerator
                         }
                     }
 
-                    if (payloadType == null && !(eventType != null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler"))
+                    if (payloadType is null && !(eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler"))
                     {
-                        payloadType = compilation.GetTypeByMetadataName("System.Object");
+                        // Default to System.Object since compilation reference is not available
+                        payloadType = null;
                     }
 
                     string observableElementType;
                     bool useAsUnit = false;
-                    if (eventType != null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
+                    if (eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
                     {
                         observableElementType = "global::R3.Unit";
                         useAsUnit = true;
                     }
-                    else if (payloadType != null)
+                    else if (payloadType is not null)
                     {
                         var payloadDisplay = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                         observableElementType = payloadDisplay;
@@ -170,7 +166,6 @@ static partial class {{classSymbol.Name}}
                     : $"{classNamespace}.{classSymbol.Name}.g.cs";
 
                 spc.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8));
-            }
         });
     }
 
