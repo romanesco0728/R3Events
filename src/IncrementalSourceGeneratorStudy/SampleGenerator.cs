@@ -189,7 +189,7 @@ namespace Events.R3
         public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType}}, (global::System.Object?, {{methodInfo.ObservableElementType}} Args)>(
-                static h => new {{methodInfo.DelegateType}}((s, e) => h((s, e))),
+                h => new {{methodInfo.DelegateType}}((s, e) => h((s, e))),
                 h => instance.{{methodInfo.EventName}} += h,
                 h => instance.{{methodInfo.EventName}} -= h,
                 cancellationToken
