@@ -229,14 +229,36 @@ static partial class {{className}}
         spc.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8));
     }
 
-    /// <summary>
-    /// Represents metadata about a generated Observable extension method.
-    /// </summary>
-    private sealed record GeneratedMethodInfo(string EventName, string ObservableElementType, bool UseAsUnit, string DelegateType);
 
+    /// <summary>
+    /// Represents metadata describing a generated method for an observable event, including event name, element type,
+    /// and delegate information.
+    /// </summary>
+    /// <param name="EventName">The name of the event associated with the generated method.</param>
+    /// <param name="ObservableElementType">The fully qualified type name of the element emitted by the observable.</param>
+    /// <param name="UseAsUnit">A value indicating whether the observable should use R3.Unit as its element type. Set to <see langword="true"/>
+    /// to use R3.Unit; otherwise, <see langword="false"/>.</param>
+    /// <param name="DelegateType">The fully qualified type name of the delegate used for the event handler.</param>
+    private sealed record GeneratedMethodInfo(
+        string EventName,
+        string ObservableElementType,
+        bool UseAsUnit,
+        string DelegateType
+        );
+
+    /// <summary>
+    /// Represents metadata for a class and its associated generated Observable extension methods as parsed from an
+    /// R3EventAttribute.
+    /// </summary>
+    /// <param name="ClassNamespace">The fully qualified namespace of the attributed class. Specify an empty string if the class is in the global
+    /// namespace.</param>
+    /// <param name="ClassName">The name of the attributed class.</param>
+    /// <param name="GeneratedMethods">A collection of metadata describing the generated Observable extension methods for the attributed class.</param>
+    /// <param name="TargetTypeFullName">The fully qualified type name of the target type referenced in the R3EventAttribute.</param>
     private sealed record ParsedProperty(
         string ClassNamespace,
         string ClassName,
         System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> GeneratedMethods,
-        string TargetTypeFullName);
+        string TargetTypeFullName
+        );
 }
