@@ -84,68 +84,70 @@ namespace Events.R3
         );
     }
 
-    private static System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType)
+    private static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType)
     {
-        var methods = System.Collections.Immutable.ImmutableArray.CreateBuilder<GeneratedMethodInfo>();
+        var methodInfos = targetType.GetMembers()
+            .OfType<IEventSymbol>()
+            .Where(static ev => ev.DeclaredAccessibility is Accessibility.Public)
+            .Select(static x => GenerateMethodInfo(x))
+            .OrderBy(static x => x.EventName)
+            .ToArray();
+        return new(methodInfos);
+    }
 
-        foreach (var member in targetType.GetMembers())
+    private static GeneratedMethodInfo GenerateMethodInfo(IEventSymbol ev)
+    {
+        var eventType = ev.Type as INamedTypeSymbol;
+        ITypeSymbol? payloadType = null;
+
+        if (eventType != null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
         {
-            if (member is not IEventSymbol { DeclaredAccessibility: Accessibility.Public } ev) continue;
-
-            var eventType = ev.Type as INamedTypeSymbol;
-            ITypeSymbol? payloadType = null;
-
-            if (eventType != null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
+            // unit
+        }
+        else if (eventType != null && eventType.IsGenericType && eventType.ConstructedFrom?.ToDisplayString() == "System.EventHandler<TEventArgs>")
+        {
+            payloadType = eventType.TypeArguments[0];
+        }
+        else
+        {
+            var invoke = eventType?.DelegateInvokeMethod;
+            if (invoke != null)
             {
-                // unit
+                var ps = invoke.Parameters;
+                if (ps.Length >= 1) payloadType = ps[^1].Type;
             }
-            else if (eventType != null && eventType.IsGenericType && eventType.ConstructedFrom?.ToDisplayString() == "System.EventHandler<TEventArgs>")
-            {
-                payloadType = eventType.TypeArguments[0];
-            }
-            else
-            {
-                var invoke = eventType?.DelegateInvokeMethod;
-                if (invoke != null)
-                {
-                    var ps = invoke.Parameters;
-                    if (ps.Length >= 1) payloadType = ps[^1].Type;
-                }
-            }
-
-            if (payloadType is null && !(eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler"))
-            {
-                // Default to System.Object since compilation reference is not available
-                payloadType = null;
-            }
-
-            string observableElementType;
-            bool useAsUnit = false;
-            if (eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
-            {
-                observableElementType = "global::R3.Unit";
-                useAsUnit = true;
-            }
-            else if (payloadType is not null)
-            {
-                observableElementType = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            }
-            else
-            {
-                observableElementType = "global::System.Object";
-            }
-
-            var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
-
-            methods.Add(new GeneratedMethodInfo(
-                EventName: ev.Name,
-                ObservableElementType: observableElementType,
-                UseAsUnit: useAsUnit,
-                DelegateType: delegateTypeDisplay
-            ));
         }
 
-        return methods.ToImmutable();
+        if (payloadType is null && !(eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler"))
+        {
+            // Default to System.Object since compilation reference is not available
+            payloadType = null;
+        }
+
+        string observableElementType;
+        bool useAsUnit = false;
+        if (eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() == "System.EventHandler")
+        {
+            observableElementType = "global::R3.Unit";
+            useAsUnit = true;
+        }
+        else if (payloadType is not null)
+        {
+            observableElementType = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+        else
+        {
+            observableElementType = "global::System.Object";
+        }
+
+        var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
+
+        return new(
+            EventName: ev.Name,
+            ObservableElementType: observableElementType,
+            UseAsUnit: useAsUnit,
+            DelegateType: delegateTypeDisplay
+        );
     }
 
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
@@ -257,7 +259,7 @@ static partial class {{className}}
     private sealed record ParsedProperty(
         string ClassNamespace,
         string ClassName,
-        System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> GeneratedMethods,
+        EquatableArray<GeneratedMethodInfo> GeneratedMethods,
         string TargetTypeFullName,
         IgnoreEquality<INamedTypeSymbol> ClassSymbol
         )
