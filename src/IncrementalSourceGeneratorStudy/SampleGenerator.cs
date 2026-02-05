@@ -70,9 +70,14 @@ namespace Events.R3
         var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
         var targetTypeFullName = targetTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+        // Get class namespace and name
+        var containingNamespace = classSymbol.ContainingNamespace;
+        var classNamespace = containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
+        var className = classSymbol.Name;
+
         return new(
-            ClassSymbol: classSymbol,
-            TargetType: targetTypeSymbol,
+            ClassNamespace: classNamespace,
+            ClassName: className,
             GeneratedMethods: generatedMethods,
             TargetTypeFullName: targetTypeFullName
         );
@@ -230,26 +235,8 @@ static partial class {{className}}
     private sealed record GeneratedMethodInfo(string EventName, string ObservableElementType, bool UseAsUnit, string DelegateType);
 
     private sealed record ParsedProperty(
-        INamedTypeSymbol ClassSymbol,
-        INamedTypeSymbol TargetType,
+        string ClassNamespace,
+        string ClassName,
         System.Collections.Immutable.ImmutableArray<GeneratedMethodInfo> GeneratedMethods,
-        string TargetTypeFullName)
-    {
-        /// <summary>
-        /// Gets the fully qualified namespace of the class represented by this instance.
-        /// </summary>
-        public string ClassNamespace
-        {
-            get
-            {
-                var containingNamespace = ClassSymbol.ContainingNamespace;
-                return containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
-            }
-        }
-
-        /// <summary>
-        /// Gets the name of the class represented by this symbol.
-        /// </summary>
-        public string ClassName => ClassSymbol.Name;
-    }
+        string TargetTypeFullName);
 }
