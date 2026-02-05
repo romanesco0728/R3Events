@@ -100,7 +100,8 @@ namespace Events.R3
         var eventType = ev.Type as INamedTypeSymbol;
         ITypeSymbol? payloadType = null;
 
-        if (eventType != null && !eventType.IsGenericType && eventType.ToDisplayString() is "System.EventHandler" or "System.EventHandler?")
+        var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } && eventType.ToDisplayString() is "System.EventHandler" or "System.EventHandler?";
+        if (isNonGenericSystemEventHandler)
         {
             // unit
         }
@@ -118,7 +119,7 @@ namespace Events.R3
             }
         }
 
-        if (payloadType is null && !(eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() is "System.EventHandler" or "System.EventHandler?"))
+        if (payloadType is null && !isNonGenericSystemEventHandler)
         {
             // Default to System.Object since compilation reference is not available
             payloadType = null;
@@ -126,7 +127,7 @@ namespace Events.R3
 
         string observableElementType;
         bool useAsUnit = false;
-        if (eventType is not null && !eventType.IsGenericType && eventType.ToDisplayString() is "System.EventHandler" or "System.EventHandler?")
+        if (isNonGenericSystemEventHandler)
         {
             //eventType.Name
             observableElementType = "global::R3.Unit";
