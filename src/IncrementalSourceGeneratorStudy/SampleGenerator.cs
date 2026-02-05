@@ -16,26 +16,14 @@ public partial class SampleGenerator : IIncrementalGenerator
         // Use ForAttributeWithMetadataName to efficiently find classes decorated with R3EventAttribute
         var attributedClasses = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                "Events.R3.R3EventAttribute",
-                predicate: static (node, _) => node is ClassDeclarationSyntax,
-                transform: static (ctx, _) =>
+                fullyQualifiedMetadataName: "Events.R3.R3EventAttribute",
+                predicate: static (node, cancellationToken) =>
                 {
-                    var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
-                    var attrib = ctx.Attributes[0];
-
-                    // Extract the target type from the attribute constructor argument
-                    if (attrib.ConstructorArguments.Length == 1)
-                    {
-                        var arg = attrib.ConstructorArguments[0];
-                        if (arg.Value is INamedTypeSymbol targetTypeSymbol)
-                        {
-                            return (ClassSymbol: classSymbol, TargetType: targetTypeSymbol);
-                        }
-                    }
-
-                    return (ClassSymbol: (INamedTypeSymbol?)null, TargetType: (INamedTypeSymbol?)null);
-                })
-            .Where(static m => m.ClassSymbol is not null && m.TargetType is not null);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
+                },
+                transform: static (ctx, cancellationToken) => Parse(ctx, cancellationToken)
+                );
 
         // Combine with compilation and generate source output
         var compilationAndItems = context.CompilationProvider.Combine(attributedClasses.Collect());
@@ -43,10 +31,9 @@ public partial class SampleGenerator : IIncrementalGenerator
         {
             var compilation = pair.Left;
             var items = pair.Right;
-            foreach (var (classSymbol, targetType) in items)
+            foreach (var item in items)
             {
-                if (classSymbol is null || targetType is null)
-                    continue;
+                var (classSymbol, targetType) = item;
 
                 //var generatedNamespace = "Events.R3.Generated";
                 // Build methods using interpolated verbatim strings for compatibility
@@ -214,4 +201,17 @@ namespace Events.R3
 """;
         context.AddSource("Events.R3.R3EventAttribute.g.cs", SourceText.From(code, Encoding.UTF8));
     }
+
+    private static ParsedProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+        var attrib = ctx.Attributes[0];
+        var arg = attrib.ConstructorArguments[0];
+        var targetTypeSymbol = (INamedTypeSymbol)arg.Value!;
+        return new(ClassSymbol: classSymbol, TargetType: targetTypeSymbol);
+    }
+
+    private sealed record ParsedProperty(INamedTypeSymbol ClassSymbol, INamedTypeSymbol TargetType);
 }
