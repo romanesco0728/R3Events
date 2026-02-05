@@ -88,7 +88,7 @@ namespace Events.R3
     {
         var methodInfos = targetType.GetMembers()
             .OfType<IEventSymbol>()
-            .Where(static ev => ev.DeclaredAccessibility is Accessibility.Public)
+            .Where(static ev => ev is { DeclaredAccessibility: Accessibility.Public, IsStatic: false })
             .Select(static x => GenerateMethodInfo(x))
             .OrderBy(static x => x.EventName)
             .ToArray();
