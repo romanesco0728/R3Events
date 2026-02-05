@@ -100,14 +100,19 @@ namespace Events.R3
         var eventType = ev.Type as INamedTypeSymbol;
         ITypeSymbol? payloadType = null;
 
-        var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } && eventType.ToDisplayString() is "System.EventHandler" or "System.EventHandler?";
+        var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } &&
+            eventType.ContainingNamespace?.Name is "System" &&
+            eventType.MetadataName is "EventHandler";
+        var isGenericSystemEventHandler = eventType is { IsGenericType: true } &&
+            eventType.ConstructedFrom?.ContainingNamespace?.Name is "System" &&
+            eventType.ConstructedFrom?.MetadataName is "EventHandler`1";
         if (isNonGenericSystemEventHandler)
         {
             // unit
         }
-        else if (eventType != null && eventType.IsGenericType && eventType.ConstructedFrom?.ToDisplayString() == "System.EventHandler<TEventArgs>")
+        else if (isGenericSystemEventHandler)
         {
-            payloadType = eventType.TypeArguments[0];
+            payloadType = eventType!.TypeArguments[0];
         }
         else
         {
