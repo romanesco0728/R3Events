@@ -4,6 +4,6 @@
     <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" Id="1f907d75-a62b-4991-8d25-f57d23880c1c" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/IncrementalSourceGeneratorStudy/IncrementalSourceGeneratorStudy.csproj" />
+    <Project Path="src/IncrementalSourceGeneratorStudy/EventsR3Generator.csproj" />
   </Folder>
 </Solution>

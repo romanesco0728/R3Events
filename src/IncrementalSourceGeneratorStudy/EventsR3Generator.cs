@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace IncrementalSourceGeneratorStudy;
 
 [Generator(LanguageNames.CSharp)]
-public partial class SampleGenerator : IIncrementalGenerator
+public partial class EventsR3Generator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
