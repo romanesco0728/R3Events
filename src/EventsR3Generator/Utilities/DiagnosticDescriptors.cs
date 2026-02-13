@@ -23,4 +23,13 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor MustBeStatic = new(
+        id: "ER003",
+        title: "Target type must be static",
+        messageFormat: "Type '{0}' must be declared as static to use R3EventAttribute.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 }

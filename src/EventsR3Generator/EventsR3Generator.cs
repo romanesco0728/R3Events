@@ -218,6 +218,15 @@ namespace Events.R3
                 );
         }
 
+        if (!item.IsStatic)
+        {
+            return Diagnostic.Create(
+                DiagnosticDescriptors.MustBeStatic,
+                item.PartialLocation,
+                item.ClassDisplayName
+                );
+        }
+
         if (!item.IsPartial)
         {
             return Diagnostic.Create(
@@ -382,6 +391,10 @@ partial class {{className}}
         /// Gets a value indicating whether the attributed class is nested within another type.
         /// </summary>
         public bool IsNested => ClassDeclaration.Value.Parent is TypeDeclarationSyntax;
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is declared as static.
+        /// </summary>
+        public bool IsStatic => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
         public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         public Location PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
 
