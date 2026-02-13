@@ -1,6 +1,7 @@
 ﻿using R3;
 using EventsR3Generator.Tests.Models;
 using EventsR3Generator.Tests.Extensions;
+using Shouldly;
 
 namespace EventsR3Generator.Tests;
 
@@ -23,7 +24,7 @@ public sealed class EventObservableTests
         person.Name = "Charlie";
 
         // Assert
-        Assert.AreEqual(2, emissionCount, "Observable should have emitted twice");
+        emissionCount.ShouldBe(2, "Observable should have emitted exactly twice");
     }
 
     [TestMethod]
@@ -39,7 +40,7 @@ public sealed class EventObservableTests
 
         // Trigger the event once
         person.Name = "Bob";
-        Assert.AreEqual(1, emissionCount);
+        emissionCount.ShouldBe(1, "Observable should have emitted once before disposal");
 
         // Dispose subscription
         subscription.Dispose();
@@ -48,7 +49,7 @@ public sealed class EventObservableTests
         person.Name = "Charlie";
 
         // Assert
-        Assert.AreEqual(1, emissionCount, "Observable should not have emitted after disposing");
+        emissionCount.ShouldBe(1, "Observable should not have emitted after disposal");
     }
 
     [TestMethod]
@@ -66,6 +67,6 @@ public sealed class EventObservableTests
         person.Name = "Alice";
 
         // Assert
-        Assert.AreEqual(0, emissionCount, "Observable should not have emitted when property value didn't change");
+        emissionCount.ShouldBe(0, "Observable should not emit when property value is unchanged");
     }
 }

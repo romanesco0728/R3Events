@@ -1,4 +1,5 @@
 ﻿using EventsR3Generator.Tests.Utilities;
+using Shouldly;
 
 namespace EventsR3Generator.Tests;
 
@@ -20,8 +21,7 @@ public partial class IntExtensions
 
         var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        Assert.IsNotNull(result);
-        Assert.HasCount(1, result);
-        Assert.AreEqual("ER003", result[0].Id);
+        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+        result[0].Id.ShouldBe("ER003", "Diagnostic ID should be ER003 for non-static class error");
     }
 }
