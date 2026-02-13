@@ -209,11 +209,20 @@ namespace Events.R3
     /// <returns>A diagnostic indicating that the property must be partial if it is not declared as such; otherwise, <see langword="null"/>.</returns>
     private static Diagnostic? Diagnose(ParsedProperty item)
     {
+        if (item.IsNested)
+        {
+            return Diagnostic.Create(
+                DiagnosticDescriptors.MustNotBeNested,
+                item.PartialLocation,
+                item.ClassDisplayName
+                );
+        }
+
         if (!item.IsPartial)
         {
             return Diagnostic.Create(
                 DiagnosticDescriptors.MustBePartial,
-                item.PartialLocation ?? Location.None,
+                item.PartialLocation,
                 item.ClassDisplayName
                 );
         }
@@ -369,8 +378,12 @@ static partial class {{className}}
         /// </summary>
         public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
 
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is nested within another type.
+        /// </summary>
+        public bool IsNested => ClassDeclaration.Value.Parent is TypeDeclarationSyntax;
         public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
-        public Location? PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
+        public Location PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
 
         public string HintBaseName => ClassSymbol.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
             .Replace("global::", "")
