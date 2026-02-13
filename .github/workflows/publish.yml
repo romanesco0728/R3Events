@@ -14,15 +14,7 @@ on:
         default: true
 
 env:
-  DOTNET_NOLOGO: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-  DOTNET_VERSION: 10.0.x
-  SLNX_PATH: ${{ github.workspace }}/EventsR3Generator.slnx
-  CSPROJ_PATH: ${{ github.workspace }}/src/EventsR3Generator/EventsR3Generator.csproj
   PACKAGE_VERSION: ${{ github.event.inputs.version }}
-  DRY_RUN: ${{ github.event.inputs.dry-run }}
-  GIT_USER_NAME: github-actions[bot]
-  GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
 
 defaults:
   run:
@@ -36,7 +28,7 @@ jobs:
     steps:
       - name: Validate Semantic Version
         run: |
-          VERSION="${{ env.PACKAGE_VERSION }}"
+          VERSION="$PACKAGE_VERSION"
           echo "Validating version format: $VERSION"
 
           # Check if version matches semantic versioning pattern (e.g., 0.1.2, 1.0.0-beta)
@@ -53,6 +45,11 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_VERSION: 10.0.x
+      CSPROJ_PATH: ${{ github.workspace }}/src/EventsR3Generator/EventsR3Generator.csproj
     steps:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
@@ -62,27 +59,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Log Build Context
-        run: |
-          SLNX_PATH="${{ env.SLNX_PATH }}"
-          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
-          echo ":: Build NuGet Package"
-          echo "Version: $PACKAGE_VERSION"
-          echo "Project: $CSPROJ_PATH"
-
       - name: Restore
-        run: dotnet restore "${{ env.SLNX_PATH }}"
+        run: dotnet restore "$SLNX_PATH"
+        env:
+          SLNX_PATH: ${{ github.workspace }}/EventsR3Generator.slnx
 
       - name: Build
-        run: dotnet build "${{ env.CSPROJ_PATH }}" --configuration Release --no-restore /p:Version="${{ env.PACKAGE_VERSION }}"
+        run: dotnet build "$CSPROJ_PATH" --configuration Release --no-restore /p:Version="$PACKAGE_VERSION"
 
       - name: Pack
-        run: dotnet pack "${{ env.CSPROJ_PATH }}" --configuration Release --no-build --output ./nupkg /p:Version="${{ env.PACKAGE_VERSION }}"
+        run: dotnet pack "$CSPROJ_PATH" --configuration Release --no-build --output ./nupkg /p:Version="$PACKAGE_VERSION"
 
       - name: Upload NuGet Package Artifact
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: nupkg
           path: ./nupkg/*.nupkg
@@ -97,20 +86,10 @@ jobs:
       packages: write
     steps:
       - name: Download NuGet Package Artifact
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: nupkg
           path: ./nupkg
-
-      - name: Log Publish Context
-        run: |
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-          DRY_RUN="${{ env.DRY_RUN }}"
-
-          echo ":: Publish NuGet Package"
-          echo "Version: $PACKAGE_VERSION"
-          echo "Dry Run: $DRY_RUN"
-          ls -la ./nupkg/
 
       - name: Configure GitHub Packages
         run: |
@@ -126,18 +105,10 @@ jobs:
 
       - name: Publish Package
         run: |
-          DRY_RUN="${{ env.DRY_RUN }}"
-          SKIP_DUP_FLAG=""
-
-          if [ "$DRY_RUN" = "true" ]; then
-            SKIP_DUP_FLAG="--skip-duplicate"
-            echo "DRY RUN: Simulating package publish..."
-          fi
-
           dotnet nuget push ./nupkg/*.nupkg \
             --source "github" \
             --api-key ${{ secrets.GITHUB_TOKEN }} \
-            $SKIP_DUP_FLAG
+            --skip-duplicate
           echo "✅ Package published successfully"
 
   create-release:
@@ -154,71 +125,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Log Release Context
-        run: |
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
-          echo ":: Create Release"
-          echo "Version: $PACKAGE_VERSION"
-          echo "Tag: v$PACKAGE_VERSION"
-
       - name: Configure Git Identity
         run: |
-          GIT_USER_NAME="${{ env.GIT_USER_NAME }}"
-          GIT_USER_EMAIL="${{ env.GIT_USER_EMAIL }}"
-
           git config user.name "$GIT_USER_NAME"
           git config user.email "$GIT_USER_EMAIL"
-
-      - name: Update Version in .csproj
-        run: |
-          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
-          if grep -q "<Version>" "$CSPROJ_PATH"; then
-            # Use | as sed delimiter to avoid escaping /
-            sed -i "s|<Version>.*</Version>|<Version>$PACKAGE_VERSION</Version>|" "$CSPROJ_PATH"
-          else
-            # Insert Version property before closing PropertyGroup
-            sed -i "/<\/PropertyGroup>/i\    <Version>$PACKAGE_VERSION</Version>" "$CSPROJ_PATH"
-          fi
-          echo "✅ Version updated in .csproj"
-
-      - name: Commit Version Change
-        run: |
-          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
-          git add "$CSPROJ_PATH"
-          git commit -m "chore: bump version to $PACKAGE_VERSION"
-          echo "✅ Version committed to main"
+        env:
+          GIT_USER_NAME: github-actions[bot]
+          GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
 
       - name: Create Git Tag
         run: |
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
           git tag -a "v$PACKAGE_VERSION" -m "Release version $PACKAGE_VERSION"
           echo "✅ Tag v$PACKAGE_VERSION created"
 
       - name: Push Commit and Tag
         run: |
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
           git push origin main
           git push origin "v$PACKAGE_VERSION"
           echo "✅ Commit and tag pushed to repository"
-
-      - name: Release Summary
-        run: |
-          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
-
-          echo ":: Release Summary"
-          echo "Version: $PACKAGE_VERSION"
-          echo "Git operations completed:"
-          echo "  - Version committed to main"
-          echo "  - Tag v$PACKAGE_VERSION created and pushed"
