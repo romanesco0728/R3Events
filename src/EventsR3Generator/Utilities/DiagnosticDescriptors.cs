@@ -32,4 +32,13 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor MustNotBeGeneric = new(
+        id: "ER004",
+        title: "Target type must not be generic",
+        messageFormat: "Type '{0}' must not be a generic type to use R3EventAttribute.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 }

@@ -227,6 +227,15 @@ namespace Events.R3
                 );
         }
 
+        if (item.IsGeneric)
+        {
+            return Diagnostic.Create(
+                DiagnosticDescriptors.MustNotBeGeneric,
+                item.PartialLocation,
+                item.ClassDisplayName
+                );
+        }
+
         if (!item.IsPartial)
         {
             return Diagnostic.Create(
@@ -395,6 +404,10 @@ partial class {{className}}
         /// Gets a value indicating whether the attributed class is declared as static.
         /// </summary>
         public bool IsStatic => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is a generic type.
+        /// </summary>
+        public bool IsGeneric => ClassDeclaration.Value.TypeParameterList is not null;
         public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         public Location PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
 
