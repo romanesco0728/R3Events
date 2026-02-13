@@ -28,16 +28,11 @@ defaults:
   run:
     shell: bash
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
   validate-version:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
+    runs-on: ubuntu-slim
+    timeout-minutes: 1
+    permissions: {}
     steps:
       - name: Validate Semantic Version
         run: |
@@ -69,9 +64,13 @@ jobs:
 
       - name: Log Build Context
         run: |
+          SLNX_PATH="${{ env.SLNX_PATH }}"
+          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
           echo ":: Build NuGet Package"
-          echo "Version: ${{ env.PACKAGE_VERSION }}"
-          echo "Project: ${{ env.CSPROJ_PATH }}"
+          echo "Version: $PACKAGE_VERSION"
+          echo "Project: $CSPROJ_PATH"
 
       - name: Restore
         run: dotnet restore "${{ env.SLNX_PATH }}"
@@ -90,6 +89,7 @@ jobs:
           retention-days: 1
 
   publish-package:
+    if: github.event.inputs.dry-run == 'false'
     needs: build-package
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -104,27 +104,36 @@ jobs:
 
       - name: Log Publish Context
         run: |
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+          DRY_RUN="${{ env.DRY_RUN }}"
+
           echo ":: Publish NuGet Package"
-          echo "Version: ${{ env.PACKAGE_VERSION }}"
-          echo "Dry Run: ${{ env.DRY_RUN }}"
+          echo "Version: $PACKAGE_VERSION"
+          echo "Dry Run: $DRY_RUN"
           ls -la ./nupkg/
 
       - name: Configure GitHub Packages
         run: |
+          GITHUB_ACTOR="${{ github.actor }}"
+          REPOSITORY_OWNER="${{ github.repository_owner }}"
+
           dotnet nuget add source \
-            --username ${{ github.actor }} \
+            --username "$GITHUB_ACTOR" \
             --password ${{ secrets.GITHUB_TOKEN }} \
             --store-password-in-clear-text \
             --name "github" \
-            "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+            "https://nuget.pkg.github.com/$REPOSITORY_OWNER/index.json"
 
       - name: Publish Package
         run: |
+          DRY_RUN="${{ env.DRY_RUN }}"
           SKIP_DUP_FLAG=""
-          if [ "${{ env.DRY_RUN }}" = "true" ]; then
+
+          if [ "$DRY_RUN" = "true" ]; then
             SKIP_DUP_FLAG="--skip-duplicate"
             echo "DRY RUN: Simulating package publish..."
           fi
+
           dotnet nuget push ./nupkg/*.nupkg \
             --source "github" \
             --api-key ${{ secrets.GITHUB_TOKEN }} \
@@ -152,45 +161,64 @@ jobs:
 
       - name: Log Release Context
         run: |
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
           echo ":: Create Release"
-          echo "Version: ${{ env.PACKAGE_VERSION }}"
-          echo "Tag: v${{ env.PACKAGE_VERSION }}"
+          echo "Version: $PACKAGE_VERSION"
+          echo "Tag: v$PACKAGE_VERSION"
 
       - name: Configure Git Identity
         run: |
-          git config user.name "${{ env.GIT_USER_NAME }}"
-          git config user.email "${{ env.GIT_USER_EMAIL }}"
+          GIT_USER_NAME="${{ env.GIT_USER_NAME }}"
+          GIT_USER_EMAIL="${{ env.GIT_USER_EMAIL }}"
+
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
 
       - name: Update Version in .csproj
         run: |
-          if grep -q "<Version>" "${{ env.CSPROJ_PATH }}"; then
-            sed -i "s/<Version>.*<\/Version>/<Version>${{ env.PACKAGE_VERSION }}<\/Version>/" "${{ env.CSPROJ_PATH }}"
+          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
+          if grep -q "<Version>" "$CSPROJ_PATH"; then
+            # Use | as sed delimiter to avoid escaping /
+            sed -i "s|<Version>.*</Version>|<Version>$PACKAGE_VERSION</Version>|" "$CSPROJ_PATH"
           else
-            sed -i "/<\/PropertyGroup>/i\    <Version>${{ env.PACKAGE_VERSION }}</Version>" "${{ env.CSPROJ_PATH }}"
+            # Insert Version property before closing PropertyGroup
+            sed -i "/<\/PropertyGroup>/i\    <Version>$PACKAGE_VERSION</Version>" "$CSPROJ_PATH"
           fi
           echo "✅ Version updated in .csproj"
 
       - name: Commit Version Change
         run: |
-          git add "${{ env.CSPROJ_PATH }}"
-          git commit -m "chore: bump version to ${{ env.PACKAGE_VERSION }}"
+          CSPROJ_PATH="${{ env.CSPROJ_PATH }}"
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
+          git add "$CSPROJ_PATH"
+          git commit -m "chore: bump version to $PACKAGE_VERSION"
           echo "✅ Version committed to main"
 
       - name: Create Git Tag
         run: |
-          git tag -a "v${{ env.PACKAGE_VERSION }}" -m "Release version ${{ env.PACKAGE_VERSION }}"
-          echo "✅ Tag v${{ env.PACKAGE_VERSION }} created"
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
+          git tag -a "v$PACKAGE_VERSION" -m "Release version $PACKAGE_VERSION"
+          echo "✅ Tag v$PACKAGE_VERSION created"
 
       - name: Push Commit and Tag
         run: |
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
           git push origin main
-          git push origin "v${{ env.PACKAGE_VERSION }}"
+          git push origin "v$PACKAGE_VERSION"
           echo "✅ Commit and tag pushed to repository"
 
       - name: Release Summary
         run: |
+          PACKAGE_VERSION="${{ env.PACKAGE_VERSION }}"
+
           echo ":: Release Summary"
-          echo "Version: ${{ env.PACKAGE_VERSION }}"
+          echo "Version: $PACKAGE_VERSION"
           echo "Git operations completed:"
           echo "  - Version committed to main"
-          echo "  - Tag v${{ env.PACKAGE_VERSION }} created and pushed"
+          echo "  - Tag v$PACKAGE_VERSION created and pushed"
