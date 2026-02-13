@@ -1,4 +1,4 @@
-﻿namespace EventsR3Generator;
+﻿namespace EventsR3Generator.Utilities;
 
 internal readonly struct IgnoreEquality<T>(T value) : IEquatable<IgnoreEquality<T>>
 {

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace EventsR3Generator;
+namespace EventsR3Generator.Utilities;
 
 internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
     where T : IEquatable<T>

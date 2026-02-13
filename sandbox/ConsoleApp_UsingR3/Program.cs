@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿#pragma warning disable CS0067
 using R3;
 using System.ComponentModel;
 

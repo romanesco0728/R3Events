@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using EventsR3Generator.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
