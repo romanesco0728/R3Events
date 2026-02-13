@@ -1,4 +1,4 @@
-﻿namespace IncrementalSourceGeneratorStudy;
+﻿namespace EventsR3Generator;
 
 internal readonly struct IgnoreEquality<T>(T value) : IEquatable<IgnoreEquality<T>>
 {

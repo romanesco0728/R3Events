@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace IncrementalSourceGeneratorStudy;
+namespace EventsR3Generator;
 
 [Generator(LanguageNames.CSharp)]
 public partial class EventsR3Generator : IIncrementalGenerator
