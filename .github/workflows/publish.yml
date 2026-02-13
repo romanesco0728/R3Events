@@ -14,6 +14,9 @@ on:
         default: true
 
 env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_VERSION: 10.0.x
   PACKAGE_VERSION: ${{ github.event.inputs.version }}
 
 defaults:
@@ -46,9 +49,6 @@ jobs:
     permissions:
       contents: read
     env:
-      DOTNET_NOLOGO: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      DOTNET_VERSION: 10.0.x
       CSPROJ_PATH: ${{ github.workspace }}/src/EventsR3Generator/EventsR3Generator.csproj
     steps:
       - name: Setup .NET SDK
@@ -90,6 +90,11 @@ jobs:
         with:
           name: nupkg
           path: ./nupkg
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Configure GitHub Packages
         run: |
