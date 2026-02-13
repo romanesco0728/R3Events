@@ -1,11 +1,16 @@
 ﻿using System.Text;
 using EventsR3Generator.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace EventsR3Generator;
 
+/// <summary>
+/// Implements a source generator that produces Observable extension methods for classes decorated with the
+/// R3EventAttribute, enabling reactive event handling in C# projects.
+/// </summary>
 [Generator(LanguageNames.CSharp)]
 public partial class EventsR3Generator : IIncrementalGenerator
 {
@@ -30,6 +35,13 @@ public partial class EventsR3Generator : IIncrementalGenerator
         context.RegisterSourceOutput(source, static (spc, item) => EmitSourceOutput(spc, item));
     }
 
+    /// <summary>
+    /// Generates and adds the default R3EventAttribute source code to the compilation during post-initialization.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended for use within source generators to ensure the R3EventAttribute is available in the compilation.
+    /// The generated attribute is internal and sealed, and is applied to classes  only.</remarks>
+    /// <param name="context">The context used to add generated source code during incremental generator post-initialization.</param>
     private static void EmitDefaultAttribute(IncrementalGeneratorPostInitializationContext context)
     {
         var code = """
@@ -58,11 +70,24 @@ namespace Events.R3
         context.AddSource("Events.R3.R3EventAttribute.g.cs", SourceText.From(code, Encoding.UTF8));
     }
 
+    /// <summary>
+    /// Parses the provided generator attribute context to extract property and method information for code generation.
+    /// </summary>
+    /// <remarks>
+    /// This method throws an <see cref="OperationCanceledException"/> if the cancellation token is signaled.
+    /// The returned <see cref="ParsedProperty"/> includes fully qualified names and method details for use in code generation scenarios.
+    /// </remarks>
+    /// <param name="ctx">The generator attribute context containing the target symbol, node, and associated attributes to be parsed.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
+    /// <returns>
+    /// A <see cref="ParsedProperty"/> instance containing extracted class metadata and generated method information based on the target type.
+    /// </returns>
     private static ParsedProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+        var classDeclaration = (ClassDeclarationSyntax)ctx.TargetNode;
         var attrib = ctx.Attributes[0];
         var arg = attrib.ConstructorArguments[0];
         var targetTypeSymbol = (INamedTypeSymbol)arg.Value!;
@@ -80,12 +105,24 @@ namespace Events.R3
         {
             ClassNamespace = classNamespace,
             ClassName = className,
+            ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
             ClassSymbol = new(classSymbol),
+            ClassDeclaration = new(classDeclaration),
         };
     }
 
+    /// <summary>
+    /// Extracts information about all public, non-static events declared in the specified type.
+    /// </summary>
+    /// <param name="targetType">
+    /// The type symbol representing the target type from which to extract event method information.
+    /// </param>
+    /// <returns>
+    /// An array containing information about each public, non-static event declared in the target type.
+    /// The array is ordered by event name and will be empty if no such events are found.
+    /// </returns>
     private static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType)
     {
         var methodInfos = targetType.GetMembers()
@@ -155,10 +192,47 @@ namespace Events.R3
 
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
     {
+        if (Diagnose(item) is { } diag)
+        {
+            spc.ReportDiagnostic(diag);
+            return;
+        }
+
         var hintName = $"{item.HintBaseName}.g.cs";
         spc.AddSource(hintName, SourceText.From(GenerateSource(item), Encoding.UTF8));
     }
 
+    /// <summary>
+    /// Analyzes the specified property and returns a diagnostic result.
+    /// </summary>
+    /// <param name="item">The property to analyze for partial declaration.</param>
+    /// <returns>A diagnostic indicating that the property must be partial if it is not declared as such; otherwise, <see langword="null"/>.</returns>
+    private static Diagnostic? Diagnose(ParsedProperty item)
+    {
+        if (!item.IsPartial)
+        {
+            return Diagnostic.Create(
+                DiagnosticDescriptors.MustBePartial,
+                item.PartialLocation ?? Location.None,
+                item.ClassDisplayName
+                );
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Generates C# source code for extension methods that expose events of a parsed property as observables.
+    /// </summary>
+    /// <remarks>
+    /// The generated source code includes extension methods for each event defined in the parsed property.
+    /// These methods allow consumers to subscribe to events using the R3 observable pattern.
+    /// The output is intended for use in code generation scenarios and is marked as auto-generated.
+    /// </remarks>
+    /// <param name="item">The parsed property containing event information and target type details used to generate observable extension  methods.
+    /// </param>
+    /// <returns>
+    /// A string containing the generated C# source code for observable extension methods, including namespace and class declarations as appropriate.
+    /// </returns>
     private static string GenerateSource(ParsedProperty item)
     {
         var methodsBuilder = new StringBuilder();
@@ -279,6 +353,10 @@ static partial class {{className}}
         /// </summary>
         public required EquatableArray<GeneratedMethodInfo> GeneratedMethods { get; init; }
         /// <summary>
+        /// Gets the fully qualified display name of the attributed class.
+        /// </summary>
+        public required string ClassDisplayName { get; init; }
+        /// <summary>
         /// Gets the fully qualified type name of the target type referenced in the R3EventAttribute.
         /// </summary>
         public required string TargetTypeFullName { get; init; }
@@ -286,6 +364,13 @@ static partial class {{className}}
         /// Gets the symbol of the attributed class.
         /// </summary>
         public required IgnoreEquality<INamedTypeSymbol> ClassSymbol { get; init; }
+        /// <summary>
+        /// Gets the syntax node representing the class declaration of the attributed class.
+        /// </summary>
+        public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
+
+        public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
+        public Location? PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
 
         public string HintBaseName => ClassSymbol.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
             .Replace("global::", "")
