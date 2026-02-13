@@ -75,13 +75,14 @@ namespace Events.R3
         var classNamespace = containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
         var className = classSymbol.Name;
 
-        return new(
-            ClassNamespace: classNamespace,
-            ClassName: className,
-            GeneratedMethods: generatedMethods,
-            TargetTypeFullName: targetTypeFullName,
-            new(classSymbol)
-        );
+        return new()
+        {
+            ClassNamespace = classNamespace,
+            ClassName = className,
+            GeneratedMethods = generatedMethods,
+            TargetTypeFullName = targetTypeFullName,
+            ClassSymbol = new(classSymbol),
+        };
     }
 
     private static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType)
@@ -142,12 +143,13 @@ namespace Events.R3
 
         var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
 
-        return new(
-            EventName: ev.Name,
-            ObservableElementType: observableElementType,
-            UseAsUnit: useAsUnit,
-            DelegateType: delegateTypeDisplay
-        );
+        return new()
+        {
+            EventName = ev.Name,
+            ObservableElementType = observableElementType,
+            UseAsUnit = useAsUnit,
+            DelegateType = delegateTypeDisplay,
+        };
     }
 
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
@@ -237,35 +239,53 @@ static partial class {{className}}
     /// Represents metadata describing a generated method for an observable event, including event name, element type,
     /// and delegate information.
     /// </summary>
-    /// <param name="EventName">The name of the event associated with the generated method.</param>
-    /// <param name="ObservableElementType">The fully qualified type name of the element emitted by the observable.</param>
-    /// <param name="UseAsUnit">A value indicating whether the observable should use R3.Unit as its element type. Set to <see langword="true"/>
-    /// to use R3.Unit; otherwise, <see langword="false"/>.</param>
-    /// <param name="DelegateType">The fully qualified type name of the delegate used for the event handler.</param>
-    private sealed record GeneratedMethodInfo(
-        string EventName,
-        string ObservableElementType,
-        bool UseAsUnit,
-        string DelegateType
-        );
+    private sealed record GeneratedMethodInfo
+    {
+        /// <summary>
+        /// Gets the name of the event associated with this instance.
+        /// </summary>
+        public required string EventName { get; init; }
+        /// <summary>
+        /// Gets the name of the element type that is being observed.
+        /// </summary>
+        public required string ObservableElementType { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether to use R3.Unit as the element type for the observable.
+        /// </summary>
+        public required bool UseAsUnit { get; init; }
+        /// <summary>
+        /// Gets the fully qualified name of the delegate type used for the event handler.
+        /// </summary>
+        public required string DelegateType { get; init; }
+    }
 
     /// <summary>
     /// Represents metadata for a class and its associated generated Observable extension methods as parsed from an
     /// R3EventAttribute.
     /// </summary>
-    /// <param name="ClassNamespace">The fully qualified namespace of the attributed class. Specify an empty string if the class is in the global
-    /// namespace.</param>
-    /// <param name="ClassName">The name of the attributed class.</param>
-    /// <param name="GeneratedMethods">A collection of metadata describing the generated Observable extension methods for the attributed class.</param>
-    /// <param name="TargetTypeFullName">The fully qualified type name of the target type referenced in the R3EventAttribute.</param>
-    private sealed record ParsedProperty(
-        string ClassNamespace,
-        string ClassName,
-        EquatableArray<GeneratedMethodInfo> GeneratedMethods,
-        string TargetTypeFullName,
-        IgnoreEquality<INamedTypeSymbol> ClassSymbol
-        )
+    private sealed record ParsedProperty
     {
+        /// <summary>
+        /// Gets the fully qualified namespace of the attributed class, or an empty string if the class is in the global namespace.
+        /// </summary>
+        public required string ClassNamespace { get; init; }
+        /// <summary>
+        /// Gets the name of the attributed class.
+        /// </summary>
+        public required string ClassName { get; init; }
+        /// <summary>
+        /// Gets a collection of metadata describing the generated Observable extension methods for the attributed class.
+        /// </summary>
+        public required EquatableArray<GeneratedMethodInfo> GeneratedMethods { get; init; }
+        /// <summary>
+        /// Gets the fully qualified type name of the target type referenced in the R3EventAttribute.
+        /// </summary>
+        public required string TargetTypeFullName { get; init; }
+        /// <summary>
+        /// Gets the symbol of the attributed class.
+        /// </summary>
+        public required IgnoreEquality<INamedTypeSymbol> ClassSymbol { get; init; }
+
         public string HintBaseName => ClassSymbol.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
             .Replace("global::", "")
             .Replace("<", "_")
