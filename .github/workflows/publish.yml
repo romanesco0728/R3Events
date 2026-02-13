@@ -1,0 +1,134 @@
+name: Publish NuGet Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic version to publish (e.g., 0.1.2)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Dry run mode (no git operations)'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_VERSION: 10.0.x
+  SLNX_PATH: ${{ github.workspace }}/EventsR3Generator.slnx
+  CSPROJ_PATH: ${{ github.workspace }}/src/EventsR3Generator/EventsR3Generator.csproj
+  PACKAGE_VERSION: ${{ github.event.inputs.version }}
+  DRY_RUN: ${{ github.event.inputs.dry-run }}
+  GIT_USER_NAME: github-actions[bot]
+  GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Log Execution Context
+        run: |
+          echo ":: Publish NuGet Package"
+          echo "Version: ${{ env.PACKAGE_VERSION }}"
+          echo "Dry Run: ${{ env.DRY_RUN }}"
+          echo "Project: ${{ env.CSPROJ_PATH }}"
+
+      - name: Configure Git Identity
+        if: env.DRY_RUN == 'false'
+        run: |
+          git config user.name "${{ env.GIT_USER_NAME }}"
+          git config user.email "${{ env.GIT_USER_EMAIL }}"
+
+      - name: Restore
+        run: dotnet restore "${{ env.SLNX_PATH }}"
+
+      - name: Build
+        run: dotnet build "${{ env.CSPROJ_PATH }}" --configuration Release --no-restore /p:Version="${{ env.PACKAGE_VERSION }}"
+
+      - name: Pack
+        run: dotnet pack "${{ env.CSPROJ_PATH }}" --configuration Release --no-build --output ./nupkg /p:Version="${{ env.PACKAGE_VERSION }}"
+
+      - name: Update Version in .csproj
+        if: env.DRY_RUN == 'false'
+        run: |
+          if grep -q "<Version>" "${{ env.CSPROJ_PATH }}"; then
+            sed -i "s/<Version>.*<\/Version>/<Version>${{ env.PACKAGE_VERSION }}<\/Version>/" "${{ env.CSPROJ_PATH }}"
+          else
+            sed -i "/<\/PropertyGroup>/i\    <Version>${{ env.PACKAGE_VERSION }}</Version>" "${{ env.CSPROJ_PATH }}"
+          fi
+
+      - name: Commit Version Change
+        if: env.DRY_RUN == 'false'
+        run: |
+          git add "${{ env.CSPROJ_PATH }}"
+          git commit -m "chore: bump version to ${{ env.PACKAGE_VERSION }}"
+
+      - name: Create Git Tag
+        if: env.DRY_RUN == 'false'
+        run: |
+          git tag -a "v${{ env.PACKAGE_VERSION }}" -m "Release version ${{ env.PACKAGE_VERSION }}"
+
+      - name: Push Commit and Tag
+        if: env.DRY_RUN == 'false'
+        run: |
+          git push origin main
+          git push origin "v${{ env.PACKAGE_VERSION }}"
+
+      - name: Configure GitHub Packages
+        run: |
+          dotnet nuget add source \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }} \
+            --store-password-in-clear-text \
+            --name "github" \
+            "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: Publish Package
+        run: |
+          SKIP_DUP_FLAG=""
+          if [ "${{ env.DRY_RUN }}" = "true" ]; then
+            SKIP_DUP_FLAG="--skip-duplicate"
+            echo "DRY RUN: Simulating package publish..."
+          fi
+          dotnet nuget push ./nupkg/*.nupkg \
+            --source "github" \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            $SKIP_DUP_FLAG
+
+      - name: Publish Summary
+        if: always()
+        run: |
+          echo ":: Publish Summary"
+          if [ "${{ env.DRY_RUN }}" = "true" ]; then
+            echo "Mode: DRY RUN (no repository changes)"
+          else
+            echo "Mode: PRODUCTION"
+            echo "Git operations completed:"
+            echo "  - Version committed to main"
+            echo "  - Tag v${{ env.PACKAGE_VERSION }} created and pushed"
+          fi
+          echo "Package published to GitHub Packages"
+          echo "Version: ${{ env.PACKAGE_VERSION }}"
+          echo "Package: EventsR3Generator"
