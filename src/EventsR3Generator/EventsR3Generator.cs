@@ -28,7 +28,7 @@ public partial class EventsR3Generator : IIncrementalGenerator
         // Emit the generic R3EventAttribute<T> if language version supports it (C# 11+)
         var languageVersionProvider = compilationProvider.Select(static (compilation, _) =>
         {
-            var parseOptions = (CSharpParseOptions)compilation.SyntaxTrees.FirstOrDefault()?.Options!;
+            var parseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions;
             return parseOptions?.LanguageVersion ?? LanguageVersion.CSharp1;
         });
         
