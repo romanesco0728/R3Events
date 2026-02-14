@@ -28,8 +28,22 @@ public partial class EventsR3Generator : IIncrementalGenerator
         // Emit the generic R3EventAttribute<T> if language version supports it (C# 11+)
         var languageVersionProvider = compilationProvider.Select(static (compilation, _) =>
         {
-            var parseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions;
-            return parseOptions?.LanguageVersion ?? LanguageVersion.CSharp1;
+            // Get the maximum language version across all syntax trees to ensure
+            // the generic attribute is available when any file uses C# 11+
+            var maxLanguageVersion = LanguageVersion.CSharp1;
+            
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                if (tree.Options is CSharpParseOptions parseOptions)
+                {
+                    if (parseOptions.LanguageVersion > maxLanguageVersion)
+                    {
+                        maxLanguageVersion = parseOptions.LanguageVersion;
+                    }
+                }
+            }
+            
+            return maxLanguageVersion;
         });
         
         context.RegisterSourceOutput(languageVersionProvider, static (spc, languageVersion) =>
