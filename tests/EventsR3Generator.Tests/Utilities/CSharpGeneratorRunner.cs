@@ -23,7 +23,7 @@ internal static class CSharpGeneratorRunner
             });
 
         var references = systemAssemblies
-            // .Append(typeof(Foo).Assembly.Location) // 依存DLLがある場合はそれも追加しておく
+            .Append(typeof(R3.Observable).Assembly.Location) // Add R3 assembly for generated code compilation
             .Select(x => MetadataReference.CreateFromFile(x))
             .ToArray();
 
@@ -34,11 +34,11 @@ internal static class CSharpGeneratorRunner
         baseCompilation = compilation;
     }
 
-    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null)
+    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11)
     {
-        // NET 7 + C# 11
+        // NET 7 + C# 11 by default
         preprocessorSymbols ??= ["NET7_0_OR_GREATER"];
-        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
+        var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
         var driver = CSharpGeneratorDriver.Create(new EventsR3Generator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
         {
