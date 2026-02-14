@@ -1,6 +1,6 @@
 使用例と生成コードの例
 
-例 1: 単純な EventHandler
+例 1: 単純な EventHandler (非ジェネリック属性)
 
 入力ソース:
 
@@ -39,6 +39,25 @@ namespace Events.R3.Generated
     }
 }
 ```
+
+例 1.5: 単純な EventHandler (ジェネリック属性、C# 11+ のみ)
+
+入力ソース:
+
+```csharp
+class C1
+{
+    public event EventHandler? MyEvent1;
+}
+
+// C# 11 以降では、型パラメータで対象型を指定できる
+[Events.R3.R3EventAttribute<C1>]
+internal static partial class C1Extensions;
+```
+
+生成されるコード:
+
+（例 1 と同じコードが生成される）
 
 例 2: CancelEventHandler
 

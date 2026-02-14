@@ -11,15 +11,45 @@
   `global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)`
   のように指定して出力すること。
 - 名前空間: `Events.R3`（生成コードで namespace に合わせる）
+
+**2.1. 非ジェネリック属性 (全ての C# バージョンで利用可能)**
+
 - コンストラクタ: `public R3EventAttribute(global::System.Type type)` — 対象の型を指定
 - プロパティ: `public global::System.Type Type { get; }`
+- 使用例: `[R3EventAttribute(typeof(MyClass))] internal static partial class MyClassExtensions;`
+
+**2.2. ジェネリック属性 (C# 11 以降でのみ利用可能)**
+
+- ジェネレータは、プロジェクトの言語バージョンが C# 11 以上の場合に限り、ジェネリック版の属性 `R3EventAttribute<T>` を生成する。
+- コンストラクタ: `public R3EventAttribute()` — 型パラメータ T で対象の型を指定
+- プロパティ: `public global::System.Type Type { get; }` — `typeof(T)` から取得される
+- 使用例: `[R3EventAttribute<MyClass>] internal static partial class MyClassExtensions;`
+- **互換性**: 非ジェネリック属性とジェネリック属性は同一プロジェクト内で共存可能。ジェネレータは両方の形式を認識し、同じ拡張メソッドを生成する。
+
+**言語バージョンの検出**
+
+- ジェネレータは、コンパイル時にプロジェクト内の全ソースファイルの言語バージョンを確認し、最大の言語バージョンが C# 11 以上であればジェネリック属性を生成する。
+- C# 10 以前のプロジェクトでは、ジェネリック属性は生成されず、従来の非ジェネリック属性のみが使用可能となる。
+
 - ルール: 生成コード内では公開 API 型参照に必ず `global::` プレフィックスを付与する（global-prefix.instructions.md 準拠）
 
 3. ジェネレータのトリガー
 
-- 利用側プロジェクトで任意の static partial クラスに `Events.R3.R3EventAttribute` を付与する。
-  例: `[Events.R3.R3EventAttribute(typeof(C1))] internal static partial class C1Extensions;`
-- 上記があると、ジェネレータは型 `C1` の public イベントを解析し、拡張メソッドを生成する。
+- 利用側プロジェクトで任意の static partial クラスに `Events.R3.R3EventAttribute` または `Events.R3.R3EventAttribute<T>` を付与する。
+  
+  **非ジェネリック属性の使用例:**
+  ```csharp
+  [Events.R3.R3EventAttribute(typeof(C1))] 
+  internal static partial class C1Extensions;
+  ```
+  
+  **ジェネリック属性の使用例 (C# 11+ のみ):**
+  ```csharp
+  [Events.R3.R3EventAttribute<C1>]
+  internal static partial class C1Extensions;
+  ```
+
+- 上記のいずれかがあると、ジェネレータは型 `C1` の public イベントを解析し、拡張メソッドを生成する。
 
 4. 生成される拡張メソッドの形
 
