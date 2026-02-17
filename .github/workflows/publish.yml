@@ -140,3 +140,12 @@ jobs:
           git push origin main
           git push origin "v$PACKAGE_VERSION"
           echo "✅ Commit and tag pushed to repository"
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "v$PACKAGE_VERSION" \
+            --title "v$PACKAGE_VERSION" \
+            --generate-notes
+          echo "✅ GitHub Release created"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
