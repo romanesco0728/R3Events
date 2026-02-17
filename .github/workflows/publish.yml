@@ -1,0 +1,131 @@
+name: Publish NuGet Package
+run-name: Publish v${{ github.event.inputs.version }} (dry-run:${{ github.event.inputs.dry-run }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic version to publish (e.g., 0.1.2)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Dry run mode (no git operations)'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_VERSION: 10.0.x
+  PACKAGE_VERSION: ${{ github.event.inputs.version }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-slim
+    timeout-minutes: 1
+    permissions: {}
+    steps:
+      - name: Validate Semantic Version
+        run: |
+          VERSION="$PACKAGE_VERSION"
+          echo "Validating version format: $VERSION"
+
+          # Check if version matches semantic versioning pattern (e.g., 0.1.2, 1.0.0-beta)
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?(\+[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected semantic version format (e.g., 0.1.2, 1.0.0-beta, 1.0.0+build.1)"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+  build-package:
+    needs: validate-version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      CSPROJ_PATH: ${{ github.workspace }}/src/EventsR3Generator/EventsR3Generator.csproj
+    steps:
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Restore
+        run: dotnet restore "$SLNX_PATH"
+        env:
+          SLNX_PATH: ${{ github.workspace }}/EventsR3Generator.slnx
+
+      - name: Build
+        run: dotnet build "$CSPROJ_PATH" --configuration Release --no-restore /p:Version="$PACKAGE_VERSION"
+
+      - name: Pack
+        run: dotnet pack "$CSPROJ_PATH" --configuration Release --no-build --output ./nupkg /p:Version="$PACKAGE_VERSION"
+
+      - name: Upload NuGet Package Artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: nupkg
+          path: ./nupkg/*.nupkg
+          retention-days: 1
+
+  publish-package:
+    if: github.event.inputs.dry-run == 'false'
+    needs: build-package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      packages: write
+    steps:
+      - name: Download NuGet Package Artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: nupkg
+          path: ./nupkg
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish Package
+        run: |
+          dotnet nuget push ./nupkg/*.nupkg \
+            --source "$NUGET_SOURCE" \
+            --api-key "$NUGET_API_KEY" \
+            --skip-duplicate
+          echo "✅ Package published successfully"
+        env:
+          NUGET_SOURCE: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    if: github.event.inputs.dry-run == 'false'
+    needs: build-package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "v$PACKAGE_VERSION" \
+            --title "v$PACKAGE_VERSION" \
+            --generate-notes
+          echo "✅ GitHub Release created"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

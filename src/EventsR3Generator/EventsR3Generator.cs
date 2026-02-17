@@ -14,6 +14,7 @@ namespace EventsR3Generator;
 [Generator(LanguageNames.CSharp)]
 public partial class EventsR3Generator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Get the compilation provider to access language version
