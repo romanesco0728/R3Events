@@ -14,6 +14,7 @@ namespace EventsR3Generator;
 [Generator(LanguageNames.CSharp)]
 public partial class EventsR3Generator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Emit the R3EventAttribute definition in post-initialization
