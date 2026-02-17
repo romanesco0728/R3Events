@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "enabledManagers": [
+    "aqua"
+  ],
   "schedule": [
     "before 3am on Monday"
   ],
