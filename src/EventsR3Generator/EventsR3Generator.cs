@@ -139,19 +139,6 @@ namespace Events.R3
     [global::System.AttributeUsage(global::System.AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute<T> : global::System.Attribute
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="global::Events.R3.R3EventAttribute{T}"/> class.
-        /// The target type is specified via the type parameter T.
-        /// </summary>
-        public R3EventAttribute()
-        {
-            this.Type = typeof(T);
-        }
-
-        /// <summary>
-        /// Gets the target <see cref="global::System.Type"/> represented by this attribute.
-        /// </summary>
-        public global::System.Type Type { get; }
     }
 }
 """;
