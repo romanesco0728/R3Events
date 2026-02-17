@@ -14,6 +14,18 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeSymbols>false</IncludeSymbols>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <IsPackable>true</IsPackable>
+    <PackageProjectUrl>https://github.com/romanesco0728/IncrementalSourceGeneratorStudy</PackageProjectUrl>
+    <PackageTags>R3, Source Generator</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <Company />
+    <Authors>romanesco0728</Authors>
+    <Copyright>Copyright© romanesco0728, All rights reserved.</Copyright>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
