@@ -119,27 +119,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 0
           persist-credentials: true
-
-      - name: Configure Git Identity
-        run: |
-          git config user.name "$GIT_USER_NAME"
-          git config user.email "$GIT_USER_EMAIL"
-        env:
-          GIT_USER_NAME: github-actions[bot]
-          GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
-
-      - name: Create Git Tag
-        run: |
-          git tag -a "v$PACKAGE_VERSION" -m "Release version $PACKAGE_VERSION"
-          echo "✅ Tag v$PACKAGE_VERSION created"
-
-      - name: Push Commit and Tag
-        run: |
-          git push origin main
-          git push origin "v$PACKAGE_VERSION"
-          echo "✅ Commit and tag pushed to repository"
 
       - name: Create GitHub Release
         run: |
