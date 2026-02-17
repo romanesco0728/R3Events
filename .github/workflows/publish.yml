@@ -50,7 +50,7 @@ jobs:
     permissions:
       contents: read
     env:
-      CSPROJ_PATH: ${{ github.workspace }}/main/EventsR3Generator/EventsR3Generator.csproj
+      CSPROJ_PATH: ${{ github.workspace }}/src/main/EventsR3Generator/EventsR3Generator.csproj
     steps:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
@@ -63,7 +63,7 @@ jobs:
       - name: Restore
         run: dotnet restore "$SLNX_PATH"
         env:
-          SLNX_PATH: ${{ github.workspace }}/EventsR3Generator.slnx
+          SLNX_PATH: ${{ github.workspace }}/src/EventsR3Generator.slnx
 
       - name: Build
         run: dotnet build "$CSPROJ_PATH" --configuration Release --no-restore /p:Version="$PACKAGE_VERSION"
