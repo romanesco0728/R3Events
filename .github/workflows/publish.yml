@@ -81,7 +81,7 @@ jobs:
     if: github.event.inputs.dry-run == 'false'
     needs: build-package
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       packages: write
     steps:
@@ -96,31 +96,22 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Configure GitHub Packages
-        run: |
-          GITHUB_ACTOR="${{ github.actor }}"
-          REPOSITORY_OWNER="${{ github.repository_owner }}"
-
-          dotnet nuget add source \
-            --username "$GITHUB_ACTOR" \
-            --password ${{ secrets.GITHUB_TOKEN }} \
-            --store-password-in-clear-text \
-            --name "github" \
-            "https://nuget.pkg.github.com/$REPOSITORY_OWNER/index.json"
-
       - name: Publish Package
         run: |
           dotnet nuget push ./nupkg/*.nupkg \
-            --source "github" \
-            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source "$NUGET_SOURCE" \
+            --api-key "$NUGET_API_KEY" \
             --skip-duplicate
           echo "✅ Package published successfully"
+        env:
+          NUGET_SOURCE: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
 
   create-release:
     if: github.event.inputs.dry-run == 'false'
     needs: build-package
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
