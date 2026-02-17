@@ -3,8 +3,8 @@
     <Project Path="sandbox/ConsoleApp1/ConsoleApp1.csproj" />
     <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/EventsR3Generator/EventsR3Generator.csproj" />
+  <Folder Name="/main/">
+    <Project Path="main/EventsR3Generator/EventsR3Generator.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EventsR3Generator.Tests.LangVer10/EventsR3Generator.Tests.LangVer10.csproj" />
