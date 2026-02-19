@@ -12,7 +12,7 @@ namespace EventsR3Generator;
 /// R3EventAttribute, enabling reactive event handling in C# projects.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
-public partial class EventsR3Generator : IIncrementalGenerator
+public partial class R3EventsGenerator : IIncrementalGenerator
 {
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
