@@ -101,7 +101,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
 namespace R3Events
 {
     /// <summary>
-    /// Marks a static partial class for automatic generation of Observable extension methods for events declared on the specified target type.
+    /// Marks a static partial class for automatic generation of <see cref="global::R3.Observable`1"/> extension methods for events declared on the specified target type.
     /// </summary>
     [global::System.AttributeUsage(global::System.AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute : global::System.Attribute
@@ -142,9 +142,9 @@ namespace R3Events
 namespace R3Events
 {
     /// <summary>
-    /// Marks a static partial class for automatic generation of Observable extension methods for events declared on the specified target type.
+    /// Marks a static partial class for automatic generation of <see cref="global::R3.Observable`1"/> extension methods for events declared on the specified target type.
     /// </summary>
-    /// <typeparam name="T">The target type whose events will be exposed as Observable extension methods.</typeparam>
+    /// <typeparam name="T">The target type whose events will be exposed as <see cref="global::R3.Observable`1"/> extension methods.</typeparam>
     [global::System.AttributeUsage(global::System.AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute<T> : global::System.Attribute
     {
@@ -399,7 +399,7 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an Observable for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="global::R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
         /// </summary>
         public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -417,7 +417,7 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an Observable for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="global::R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
         /// </summary>
         public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
