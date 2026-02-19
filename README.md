@@ -36,7 +36,7 @@ static partial class MyControlExtensions
 }
 ```
 
-Or when using C# 11 and .NET 7 or later, you can use the generic attribute syntax:
+Or when using C# 11 or later, you can use the generic attribute syntax:
 
 ```csharp
 using R3Events;
