@@ -1,12 +1,12 @@
-Events.R3
+R3Events
 ===
 
 C# Source Generator to create Observable extension methods for events with [R3](https://github.com/Cysharp/R3), enabling seamless integration between traditional .NET events and reactive programming.
 
-NuGet: [Events.R3](https://www.nuget.org/packages/Events.R3)
+NuGet: [R3Events](https://www.nuget.org/packages/R3Events)
 
 ```
-Install-Package Events.R3
+Install-Package R3Events
 ```
 
 ## Introduction
@@ -28,7 +28,7 @@ class MyControl
 Simply create a static partial class with the `R3Event` attribute:
 
 ```csharp
-using Events.R3;
+using R3Events;
 
 [R3Event(typeof(MyControl))]
 static partial class MyControlExtensions
@@ -39,7 +39,7 @@ static partial class MyControlExtensions
 Or when using C# 11 and .NET 7 or later, you can use the generic attribute syntax:
 
 ```csharp
-using Events.R3;
+using R3Events;
 
 [R3Event<MyControl>]
 static partial class MyControlExtensions
@@ -109,10 +109,10 @@ control.BeforeCloseAsObservable()
 
 ## R3EventAttribute
 
-When referencing the Events.R3 package, it generates an internal `R3EventAttribute`:
+When referencing the R3Events package, it generates an internal `R3EventAttribute`:
 
 ```csharp
-namespace Events.R3
+namespace R3Events
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute : Attribute
@@ -126,7 +126,7 @@ namespace Events.R3
 When using C# 11 or later, the generator additionally creates a generic variant:
 
 ```csharp
-namespace Events.R3
+namespace R3Events
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute<T> : Attribute
@@ -207,10 +207,10 @@ public static Observable<CustomEventArgs> CustomEventAsObservable(
 
 ```
 Install-Package R3
-Install-Package Events.R3
+Install-Package R3Events
 ```
 
-**Important:** While Events.R3 does not have a package dependency on R3, the generated code calls R3 APIs (`Observable.FromEvent`, `Observable.FromEventHandler`, etc.). Therefore, you must install the R3 package in your project for the generated code to compile successfully.
+**Important:** While R3Events does not have a package dependency on R3, the generated code calls R3 APIs (`Observable.FromEvent`, `Observable.FromEventHandler`, etc.). Therefore, you must install the R3 package in your project for the generated code to compile successfully.
 
 ## License
 

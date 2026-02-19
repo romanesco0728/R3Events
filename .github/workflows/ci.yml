@@ -14,7 +14,7 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_VERSION: 10.0.x
-  SLNX_PATH: ${{ github.workspace }}/src/EventsR3Generator.slnx
+  SLNX_PATH: ${{ github.workspace }}/src/R3EventsGenerator.slnx
 
 defaults:
   run:
