@@ -105,7 +105,6 @@ jobs:
           unzip -p ./nupkg/*.nupkg *.nuspec | grep -E "<id>|<version>"
 
       - name: Publish Package
-        if: false
         run: |
           dotnet nuget push ./nupkg/*.nupkg \
             --source "$NUGET_SOURCE" \
