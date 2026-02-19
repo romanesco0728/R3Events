@@ -16,7 +16,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 
     <IsPackable>true</IsPackable>
-    <PackageId>EventsR3ZZZ20260219Unique</PackageId>
+    <PackageId>R3Events</PackageId>
     <PackageProjectUrl>https://github.com/romanesco0728/IncrementalSourceGeneratorStudy</PackageProjectUrl>
     <PackageTags>R3, sourcegenerator</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
