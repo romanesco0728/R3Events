@@ -1,4 +1,4 @@
-namespace R3EventsGenerator.Tests.Models;
+﻿namespace R3EventsGenerator.Tests.LangVer10.Models;
 
 internal sealed class Person
 {

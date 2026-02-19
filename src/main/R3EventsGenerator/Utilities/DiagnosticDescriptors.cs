@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace EventsR3Generator.Utilities;
+namespace R3EventsGenerator.Utilities;
 
 internal static class DiagnosticDescriptors
 {

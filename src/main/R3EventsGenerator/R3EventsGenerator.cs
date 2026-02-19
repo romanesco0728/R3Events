@@ -1,11 +1,11 @@
 ﻿using System.Text;
-using EventsR3Generator.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using R3EventsGenerator.Utilities;
 
-namespace EventsR3Generator;
+namespace R3EventsGenerator;
 
 /// <summary>
 /// Implements a source generator that produces Observable extension methods for classes decorated with the

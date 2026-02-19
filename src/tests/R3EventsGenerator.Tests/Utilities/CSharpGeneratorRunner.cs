@@ -39,7 +39,7 @@ internal static class CSharpGeneratorRunner
         // NET 7 + C# 11 by default
         preprocessorSymbols ??= ["NET7_0_OR_GREATER"];
         var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
-        var driver = CSharpGeneratorDriver.Create(new global::EventsR3Generator.R3EventsGenerator()).WithUpdatedParseOptions(parseOptions);
+        var driver = CSharpGeneratorDriver.Create(new R3EventsGenerator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
         {
             driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
