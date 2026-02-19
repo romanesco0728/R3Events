@@ -4,10 +4,10 @@
     <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" />
   </Folder>
   <Folder Name="/main/">
-    <Project Path="main/EventsR3Generator/R3EventsGenerator.csproj" />
+    <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/EventsR3Generator.Tests.LangVer10/EventsR3Generator.Tests.LangVer10.csproj" />
-    <Project Path="tests/EventsR3Generator.Tests/EventsR3Generator.Tests.csproj" />
+    <Project Path="tests/R3EventsGenerator.Tests.LangVer10/R3EventsGenerator.Tests.LangVer10.csproj" />
+    <Project Path="tests/R3EventsGenerator.Tests/R3EventsGenerator.Tests.csproj" />
   </Folder>
 </Solution>
