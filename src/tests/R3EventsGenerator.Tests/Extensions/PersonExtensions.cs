@@ -1,6 +1,6 @@
-﻿using Events.R3;
+﻿using R3Events;
 
-namespace EventsR3Generator.Tests.Extensions;
+namespace R3EventsGenerator.Tests.Extensions;
 
 [R3Event(typeof(Models.Person))]
 internal static partial class PersonExtensions;

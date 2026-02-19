@@ -1,8 +1,8 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace EventsR3Generator.Tests.Utilities;
+namespace R3EventsGenerator.Tests.LangVer10.Utilities;
 
 internal static class CSharpGeneratorRunner
 {
@@ -42,7 +42,7 @@ internal static class CSharpGeneratorRunner
         // NET 8.0 + C# 10 by default (no generic attributes support)
         preprocessorSymbols ??= new[] { "NET8_0_OR_GREATER" };
         var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
-        var driver = CSharpGeneratorDriver.Create(new EventsR3Generator()).WithUpdatedParseOptions(parseOptions);
+        var driver = CSharpGeneratorDriver.Create(new R3EventsGenerator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
         {
             driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);

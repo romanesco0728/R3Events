@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../main/EventsR3Generator/EventsR3Generator.csproj">
+    <ProjectReference Include="../../main/R3EventsGenerator/R3EventsGenerator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
     </ProjectReference>

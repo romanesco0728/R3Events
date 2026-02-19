@@ -10,7 +10,7 @@ applyTo: '**/*.cs'
 
 ## ルール
 - 生成される C# ファイル内で参照するすべての型、名前空間、属性、例外、インターフェイス等は `global::` を付けた完全修飾名で記述すること。
-  - 例: `global::System.Type`、`global::Events.R3.R3EventAttribute`、`global::MyCompany.Project.Models.User`。
+    - 例: `global::System.Type`、`global::R3Events.R3EventAttribute`、`global::MyCompany.Project.Models.User`。
 - 生成コード内で `using` を使う場合でも、外部依存や公開 API に使われる型参照は `global::` を用いた完全修飾名に置き換えることを推奨する。
 - 例外: 非公開なローカルヘルパークラス（ジェネレータ内部のみで完結するもの）で読みやすさのためにローカル using を使う場合は例外とする。ただし公開 API や出力される型には必ず `global::` を使うこと。
 
@@ -21,7 +21,7 @@ applyTo: '**/*.cs'
 ## 実装例
 ```csharp
 // 良い例（推奨）
-var code = @"namespace Events.R3
+var code = @"namespace R3Events
 {
     using global::System;
 
@@ -38,7 +38,7 @@ var code = @"namespace Events.R3
 ;
 
 // 悪い例（競合しやすい）
-var code = @"namespace Events.R3
+var code = @"namespace R3Events
 {
     using System;
 

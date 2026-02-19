@@ -1,9 +1,9 @@
 ﻿using R3;
-using EventsR3Generator.Tests.Models;
-using EventsR3Generator.Tests.Extensions;
+using R3EventsGenerator.Tests.Models;
+using R3EventsGenerator.Tests.Extensions;
 using Shouldly;
 
-namespace EventsR3Generator.Tests;
+namespace R3EventsGenerator.Tests;
 
 [TestClass]
 public sealed class EventObservableTests

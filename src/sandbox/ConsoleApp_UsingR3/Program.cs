@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CS0067
 using R3;
 using System.ComponentModel;
-using Events.R3;
+using R3Events;
 using TestApp;
 
 namespace TestApp
