@@ -22,7 +22,7 @@ public class TestClass
     public event System.EventHandler? MyEvent;
 }
 
-[Events.R3.R3Event<TestClass>]
+[R3Events.R3Event<TestClass>]
 internal static partial class TestExtensions
 {
 }
@@ -47,7 +47,7 @@ public class TestClass
     public event System.EventHandler? MyEvent;
 }
 
-[Events.R3.R3Event<TestClass>]
+[R3Events.R3Event<TestClass>]
 internal static partial class TestExtensions
 {
 }
@@ -76,7 +76,7 @@ public class TestClass
     public event System.EventHandler? MyEvent;
 }
 
-[Events.R3.R3Event(typeof(TestClass))]
+[R3Events.R3Event(typeof(TestClass))]
 internal static partial class TestExtensions
 {
 }
@@ -103,7 +103,7 @@ public class TestClass
     public event System.EventHandler<int>? ValueChanged;
 }
 
-[Events.R3.R3Event<TestClass>]
+[R3Events.R3Event<TestClass>]
 internal static partial class TestExtensions
 {
 }
@@ -134,13 +134,13 @@ public class TestClass2
 }
 
 // Using non-generic attribute
-[Events.R3.R3Event(typeof(TestClass1))]
+[R3Events.R3Event(typeof(TestClass1))]
 internal static partial class TestExtensions1
 {
 }
 
 // Using generic attribute
-[Events.R3.R3Event<TestClass2>]
+[R3Events.R3Event<TestClass2>]
 internal static partial class TestExtensions2
 {
 }

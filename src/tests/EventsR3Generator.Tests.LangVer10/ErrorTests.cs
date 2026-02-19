@@ -13,7 +13,7 @@ public sealed class ErrorTests
         var source = @"
 namespace ErrorTest;
 
-[Events.R3.R3Event(typeof(int))]
+[R3Events.R3Event(typeof(int))]
 public static class IntExtensions
 {
 }
@@ -34,7 +34,7 @@ namespace ErrorTest;
 
 public static class OuterClass
 {
-    [Events.R3.R3Event(typeof(int))]
+    [R3Events.R3Event(typeof(int))]
     public static partial class IntExtensions
     {
     }
@@ -54,7 +54,7 @@ public static class OuterClass
         var source = @"
 namespace ErrorTest;
 
-[Events.R3.R3Event(typeof(int))]
+[R3Events.R3Event(typeof(int))]
 public partial class IntExtensions
 {
 }
@@ -73,7 +73,7 @@ public partial class IntExtensions
         var source = @"
 namespace ErrorTest;
 
-[Events.R3.R3Event(typeof(int))]
+[R3Events.R3Event(typeof(int))]
 public static partial class IntExtensions<T>
 {
 }

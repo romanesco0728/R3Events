@@ -1,4 +1,4 @@
-using Events.R3;
+using R3Events;
 
 namespace EventsR3Generator.Tests.Extensions;
 
