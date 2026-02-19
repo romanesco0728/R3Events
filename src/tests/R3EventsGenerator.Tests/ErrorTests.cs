@@ -1,7 +1,7 @@
-﻿using EventsR3Generator.Tests.Utilities;
+﻿using R3EventsGenerator.Tests.Utilities;
 using Shouldly;
 
-namespace EventsR3Generator.Tests;
+namespace R3EventsGenerator.Tests;
 
 [TestClass]
 public sealed class ErrorTests

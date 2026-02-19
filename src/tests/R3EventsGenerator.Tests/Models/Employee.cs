@@ -1,4 +1,4 @@
-namespace EventsR3Generator.Tests.Models;
+namespace R3EventsGenerator.Tests.Models;
 
 internal sealed class Employee(string name, string department)
 {
