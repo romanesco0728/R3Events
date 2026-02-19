@@ -22,7 +22,7 @@ public static class IntExtensions
         var result = CSharpGeneratorRunner.RunGenerator(source);
 
         result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("ER001", "Diagnostic ID should be ER001 for non-partial class error");
+        result[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public static class OuterClass
         var result = CSharpGeneratorRunner.RunGenerator(source);
 
         result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("ER002", "Diagnostic ID should be ER002 for nested class error");
+        result[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
     }
 
     [TestMethod]
@@ -63,7 +63,7 @@ public partial class IntExtensions
         var result = CSharpGeneratorRunner.RunGenerator(source);
 
         result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("ER003", "Diagnostic ID should be ER003 for non-static class error");
+        result[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
     }
 
     [TestMethod]
@@ -82,6 +82,6 @@ public static partial class IntExtensions<T>
         var result = CSharpGeneratorRunner.RunGenerator(source);
 
         result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("ER004", "Diagnostic ID should be ER004 for generic class error");
+        result[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
     }
 }
