@@ -4,7 +4,7 @@ namespace R3EventsGenerator.Utilities;
 
 internal static class DiagnosticDescriptors
 {
-    const string Category = "Events.R3";
+    const string Category = "R3Events";
 
     public static readonly DiagnosticDescriptor MustBePartial = new(
         id: "ER001",

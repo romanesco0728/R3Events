@@ -10,14 +10,14 @@ class C1
     public event EventHandler? MyEvent1;
 }
 
-[Events.R3.R3EventAttribute(typeof(C1))]
+[R3Events.R3EventAttribute(typeof(C1))]
 internal static partial class C1Extensions;
 ```
 
 生成されるコード:
 
 ```csharp
-namespace Events.R3.Generated
+namespace R3Events.Generated
 {
     using global::System;
     using global::System.Threading;
@@ -51,7 +51,7 @@ class C1
 }
 
 // C# 11 以降では、型パラメータで対象型を指定できる
-[Events.R3.R3EventAttribute<C1>]
+[R3Events.R3EventAttribute<C1>]
 internal static partial class C1Extensions;
 ```
 
@@ -69,14 +69,14 @@ class C1
     public event CancelEventHandler? MyEvent2;
 }
 
-[Events.R3.R3EventAttribute(typeof(C1))]
+[R3Events.R3EventAttribute(typeof(C1))]
 internal static partial class C1Extensions;
 ```
 
 生成されるコード:
 
 ```csharp
-namespace Events.R3.Generated
+namespace R3Events.Generated
 {
     using global::System;
     using global::System.ComponentModel;

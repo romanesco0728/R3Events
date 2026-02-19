@@ -1,16 +1,16 @@
-仕様: Events.R3.R3EventAttribute と自動生成の振る舞い
+仕様: R3Events.R3EventAttribute と自動生成の振る舞い
 
 1. 目的
 
-この仕様は、Incremental Source Generator が生成する属性型 `Events.R3.R3EventAttribute` と、その属性を利用した拡張メソッド自動生成の振る舞いを定義します。ジェネレータは、利用側の型が持つ public イベントを検出し、R3 の `global::R3.Observable<T>` を返す拡張メソッドを生成します。
+この仕様は、Incremental Source Generator が生成する属性型 `R3Events.R3EventAttribute` と、その属性を利用した拡張メソッド自動生成の振る舞いを定義します。ジェネレータは、利用側の型が持つ public イベントを検出し、R3 の `global::R3.Observable<T>` を返す拡張メソッドを生成します。
 
-2. 属性: Events.R3.R3EventAttribute
+2. 属性: R3Events.R3EventAttribute
 
 - 種別: `global::System.Attribute` を継承する internal の sealed クラス
 - 適用対象: 本属性はクラスにのみ付加可能とする。生成コードでは
   `global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)`
   のように指定して出力すること。
-- 名前空間: `Events.R3`（生成コードで namespace に合わせる）
+- 名前空間: `R3Events`（生成コードで namespace に合わせる）
 
 **2.1. 非ジェネリック属性 (全ての C# バージョンで利用可能)**
 
@@ -35,17 +35,17 @@
 
 3. ジェネレータのトリガー
 
-- 利用側プロジェクトで任意の static partial クラスに `Events.R3.R3EventAttribute` または `Events.R3.R3EventAttribute<T>` を付与する。
+- 利用側プロジェクトで任意の static partial クラスに `R3Events.R3EventAttribute` または `R3Events.R3EventAttribute<T>` を付与する。
   
   **非ジェネリック属性の使用例:**
   ```csharp
-  [Events.R3.R3EventAttribute(typeof(C1))] 
+  [R3Events.R3EventAttribute(typeof(C1))] 
   internal static partial class C1Extensions;
   ```
   
   **ジェネリック属性の使用例 (C# 11+ のみ):**
   ```csharp
-  [Events.R3.R3EventAttribute<C1>]
+  [R3Events.R3EventAttribute<C1>]
   internal static partial class C1Extensions;
   ```
 
@@ -82,7 +82,7 @@
 
 8. 生成クラスとファイル命名
 
-- 生成される拡張メソッドは、`Events.R3.R3EventAttribute` を付与したクラスと同じクラスに配置してください。具体的には、ジェネレータは属性が付与されたクラスと同一の namespace および同一の（partial）クラス宣言内に拡張メソッドを生成して、コンパイル時に利用側のクラスとマージされるようにします。例: 属性を付与した `internal static partial class C1Extensions` があれば、同じ `namespace` と同じ `class` 名で生成を行うこと。
+- 生成される拡張メソッドは、`R3Events.R3EventAttribute` を付与したクラスと同じクラスに配置してください。具体的には、ジェネレータは属性が付与されたクラスと同一の namespace および同一の（partial）クラス宣言内に拡張メソッドを生成して、コンパイル時に利用側のクラスとマージされるようにします。例: 属性を付与した `internal static partial class C1Extensions` があれば、同じ `namespace` と同じ `class` 名で生成を行うこと。
 
 - 生成されるソースファイルのファイル名は、属性が付与されたクラスの名前空間とクラス名をドットで連結し、その末尾に `.g.cs` を付けた名前にしてください。例: 名前空間が `MyApp.Sample`、クラス名が `C1Extensions` の場合、ファイル名は `MyApp.Sample.C1Extensions.g.cs` とします。
 

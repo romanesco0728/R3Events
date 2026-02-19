@@ -9,7 +9,7 @@
 - 生成コード内の公開 API 参照には必ず `global::` プレフィックスを付与する（.github/instructions/global-prefix.instructions.md 準拠）。
 - 生成コードはファイルスコープの namespace を使用する。
 - 公開 API には XML ドキュメントコメントを付与する。
-- 生成ファイルの名前は `Events.R3.Generated.{TargetTypeName}.g.cs` 形式とする。
+- 生成ファイルの名前は `R3Events.Generated.{TargetTypeName}.g.cs` 形式とする。
 - 生成コードでは可能な限り `global::System` の型を使用し、null 許容を尊重する。
 
 コーディングスタイル

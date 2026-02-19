@@ -11,7 +11,7 @@ Install-Package R3Events
 
 ## Introduction
 
-Events.R3 automatically generates `AsObservable()` extension methods for all public events on a target type, allowing you to seamlessly convert .NET events into R3 observables.
+R3Events automatically generates `AsObservable()` extension methods for all public events on a target type, allowing you to seamlessly convert .NET events into R3 observables.
 
 For example, suppose you have a class with events:
 
