@@ -87,6 +87,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       packages: write
+      id-token: write
     steps:
       - name: Download NuGet Package Artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
