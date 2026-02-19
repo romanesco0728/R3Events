@@ -99,7 +99,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Inspect nupkg
+        run: |
+          ls -l ./nupkg
+          unzip -p ./nupkg/*.nupkg *.nuspec | grep -E "<id>|<version>"
+
       - name: Publish Package
+        if: false
         run: |
           dotnet nuget push ./nupkg/*.nupkg \
             --source "$NUGET_SOURCE" \
@@ -111,7 +117,7 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
   create-release:
-    if: github.event.inputs.dry-run == 'false'
+    if: false # github.event.inputs.dry-run == 'false'
     needs: build-package
     runs-on: ubuntu-24.04
     timeout-minutes: 5
