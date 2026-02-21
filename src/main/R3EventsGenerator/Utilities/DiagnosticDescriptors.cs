@@ -41,4 +41,13 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor PreferGenericAttribute = new(
+        id: "R3W001",
+        title: "Prefer generic R3EventAttribute<T>",
+        messageFormat: "Type '{0}' uses R3EventAttribute(typeof(T)). Consider using R3EventAttribute<T> instead, which is available in C# 11 and later.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
 }

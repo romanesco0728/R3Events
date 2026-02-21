@@ -18,13 +18,14 @@ namespace TestApp
     {
     }
 
-    // Also test that the old syntax still works
+    // Also test that the old syntax still works when C# 11+ is not available;
+    // use generic syntax when C# 11+ is available
     class C2
     {
         public event EventHandler? MyEvent3;
     }
 
-    [R3Event(typeof(C2))]
+    [R3Event<C2>]
     static partial class C2Extensions
     {
     }
