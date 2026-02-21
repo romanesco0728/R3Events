@@ -1,0 +1,41 @@
+* text=auto
+
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+*.ps1      text eol=crlf
+*.psm1     text eol=crlf
+*.psd1     text eol=crlf
+
+*.sh       text eol=lf
+*.bash     text eol=lf
+*.zsh      text eol=lf
+*.fish     text eol=lf
+
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.webp     binary
+*.ico      binary
+*.pdf      binary
+*.doc      binary
+*.docx     binary
+*.docm     binary
+*.xls      binary
+*.xlsx     binary
+*.xlsm     binary
+*.ppt      binary
+*.pptx     binary
+*.pptm     binary
+*.zip      binary
+*.7z       binary
+*.gz       binary
+*.tar      binary
+*.dll      binary
+*.exe      binary
+*.so       binary
+*.dylib    binary
+
+*.cs       text diff=csharp
+*.cshtml   text diff=html
+*.csx      text diff=csharp
