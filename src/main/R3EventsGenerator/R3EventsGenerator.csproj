@@ -17,7 +17,7 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>R3Events</PackageId>
-    <PackageProjectUrl>https://github.com/romanesco0728/IncrementalSourceGeneratorStudy</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/romanesco0728/R3Events</PackageProjectUrl>
     <Description>R3Events is a source generator that creates R3 Observable wrappers for events with simple attributes.</Description>
     <PackageTags>R3, sourcegenerator</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
