@@ -104,6 +104,8 @@ control.BeforeCloseAsObservable()
   - [EventHandler support](#eventhandler-support)
   - [Generic EventHandler support](#generic-eventhandler-support)
   - [Custom delegate support](#custom-delegate-support)
+- [Diagnostics](#diagnostics)
+  - [R3W001 — Prefer generic R3EventAttribute\<T\>](#r3w001--prefer-generic-r3eventattributet)
 - [Requirements](#requirements)
 - [License](#license)
 
@@ -198,6 +200,47 @@ public static Observable<CustomEventArgs> CustomEventAsObservable(
     this TargetType instance,
     CancellationToken cancellationToken = default)
 ```
+
+## Diagnostics
+
+### R3W001 — Prefer generic R3EventAttribute\<T\>
+
+**Severity:** Warning  
+**Applies to:** C# 11 or later
+
+When C# 11 or later is in use, the generator also emits the generic `R3EventAttribute<T>`. Using the non-generic `[R3Event(typeof(T))]` form while a generic alternative is available triggers warning **R3W001** at the attribute site:
+
+```
+R3W001  Type 'MyNamespace.MyClassExtensions' uses R3EventAttribute(typeof(T)).
+        Consider using R3EventAttribute<T> instead, which is available in C# 11 and later.
+```
+
+#### Quick Fix
+
+A code fix (quick action) is available to migrate automatically. Applying it replaces:
+
+```csharp
+// Before
+[R3Event(typeof(MyClass))]
+internal static partial class MyClassExtensions { }
+
+// After (applied automatically by the code fix)
+[R3Event<MyClass>]
+internal static partial class MyClassExtensions { }
+```
+
+Any namespace qualification is preserved:
+
+```csharp
+// R3Events.R3Event(typeof(T)) → R3Events.R3Event<T>
+[R3Events.R3Event(typeof(MyClass))]
+internal static partial class MyClassExtensions { }
+// becomes:
+[R3Events.R3Event<MyClass>]
+internal static partial class MyClassExtensions { }
+```
+
+> **Note:** R3W001 is only emitted when the project's C# language version is 11 or later. For C# 10 and earlier, the non-generic `[R3Event(typeof(T))]` form is the only option and no warning is produced.
 
 ## Requirements
 
