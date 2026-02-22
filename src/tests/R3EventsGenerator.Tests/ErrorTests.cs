@@ -110,6 +110,11 @@ internal static partial class TestExtensions
         var r3Warnings = result.Where(d => d.Id == "R3W001").ToArray();
         r3Warnings.Length.ShouldBe(1, "Generator should produce exactly one R3W001 warning");
         r3Warnings[0].Id.ShouldBe("R3W001", "Diagnostic ID should be R3W001 when non-generic attribute is used with C# 11+");
+
+        // The warning should point to the attribute node, not the class declaration identifier.
+        // In the source above, the attribute is on line 7 (0-based) and the class is on line 8.
+        var warningLine = r3Warnings[0].Location.GetLineSpan().StartLinePosition.Line;
+        warningLine.ShouldBe(7, "R3W001 warning should be located at the attribute line, not the class declaration line");
     }
 
     [TestMethod]

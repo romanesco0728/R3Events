@@ -195,6 +195,7 @@ namespace R3Events
             TargetTypeFullName = targetTypeFullName,
             ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
+            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
     }
 
@@ -240,6 +241,7 @@ namespace R3Events
             TargetTypeFullName = targetTypeFullName,
             ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
+            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
     }
 
@@ -340,7 +342,7 @@ namespace R3Events
         {
             spc.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.PreferGenericAttribute,
-                item.PartialLocation,
+                item.AttributeLocation.Value,
                 item.ClassDisplayName
             ));
         }
@@ -554,6 +556,11 @@ partial class {{className}}
         /// Gets the syntax node representing the class declaration of the attributed class.
         /// </summary>
         public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
+        /// <summary>
+        /// Gets the location of the R3EventAttribute application site (the attribute node in source).
+        /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.
+        /// </summary>
+        public required IgnoreEquality<Location> AttributeLocation { get; init; }
 
         /// <summary>
         /// Gets a value indicating whether the attributed class is nested within another type.
