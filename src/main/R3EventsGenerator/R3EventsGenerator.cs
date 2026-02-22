@@ -79,8 +79,9 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                 transform: static (ctx, cancellationToken) => ParseGeneric(ctx, cancellationToken)
                 );
 
-        // Generate source output for each attributed class (non-generic)
-        context.RegisterSourceOutput(source, static (spc, item) => EmitSourceOutput(spc, item));
+        // Generate source output for each attributed class (non-generic), with language version for warning
+        var sourceWithLangVersion = source.Combine(languageVersionProvider);
+        context.RegisterSourceOutput(sourceWithLangVersion, static (spc, pair) => EmitNonGenericSourceOutput(spc, pair.Left, pair.Right));
         
         // Generate source output for each attributed class (generic)
         context.RegisterSourceOutput(genericSource, static (spc, item) => EmitSourceOutput(spc, item));
@@ -194,6 +195,7 @@ namespace R3Events
             TargetTypeFullName = targetTypeFullName,
             ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
+            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
     }
 
@@ -239,6 +241,7 @@ namespace R3Events
             TargetTypeFullName = targetTypeFullName,
             ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
+            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
     }
 
@@ -317,6 +320,35 @@ namespace R3Events
             UseAsUnit = useAsUnit,
             DelegateType = delegateTypeDisplay,
         };
+    }
+
+    /// <summary>
+    /// Generates source output for a class decorated with the non-generic R3EventAttribute, and emits a
+    /// <c>R3W001</c> warning when the language version supports the generic attribute (C# 11 or later).
+    /// </summary>
+    /// <param name="spc">The source production context used to add generated source and report diagnostics.</param>
+    /// <param name="item">The parsed property containing event information and target type details.</param>
+    /// <param name="languageVersion">The C# language version in use, used to determine whether to suggest the generic attribute.</param>
+    private static void EmitNonGenericSourceOutput(SourceProductionContext spc, ParsedProperty item, LanguageVersion languageVersion)
+    {
+        if (Diagnose(item) is { } diag)
+        {
+            spc.ReportDiagnostic(diag);
+            return;
+        }
+
+        // Emit a warning when the non-generic attribute is used but C# 11+ makes the generic version available
+        if (languageVersion >= LanguageVersion.CSharp11)
+        {
+            spc.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.PreferGenericAttribute,
+                item.AttributeLocation.Value,
+                item.ClassDisplayName
+            ));
+        }
+
+        var hintName = $"{item.HintBaseName}.g.cs";
+        spc.AddSource(hintName, SourceText.From(GenerateSource(item), Encoding.UTF8));
     }
 
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
@@ -524,6 +556,11 @@ partial class {{className}}
         /// Gets the syntax node representing the class declaration of the attributed class.
         /// </summary>
         public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
+        /// <summary>
+        /// Gets the location of the R3EventAttribute application site (the attribute node in source).
+        /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.
+        /// </summary>
+        public required IgnoreEquality<Location> AttributeLocation { get; init; }
 
         /// <summary>
         /// Gets a value indicating whether the attributed class is nested within another type.
