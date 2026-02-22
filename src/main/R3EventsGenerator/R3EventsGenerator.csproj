@@ -19,15 +19,15 @@
     <PackageId>R3Events</PackageId>
     <PackageProjectUrl>https://github.com/romanesco0728/R3Events</PackageProjectUrl>
     <Description>R3Events is a source generator that creates R3 Observable wrappers for events with simple attributes.</Description>
-    <PackageTags>R3, sourcegenerator</PackageTags>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>r3;events;source-generator;roslyn-analyzer;observable</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <Company />
     <Authors>romanesco0728</Authors>
-    <Copyright>Copyright© romanesco0728, All rights reserved.</Copyright>
+    <Copyright>Copyright © romanesco0728</Copyright>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
