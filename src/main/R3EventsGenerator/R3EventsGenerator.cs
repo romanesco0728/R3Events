@@ -65,7 +65,8 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
                 transform: static (ctx, cancellationToken) => Parse(ctx, cancellationToken)
-                );
+                )
+            .WithTrackingName("R3Events.NonGeneric.0_CreateSyntaxProvider");
 
         // Use ForAttributeWithMetadataName to efficiently find classes decorated with R3EventAttribute<T> (generic)
         var genericSource = context.SyntaxProvider
@@ -77,7 +78,8 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
                 transform: static (ctx, cancellationToken) => ParseGeneric(ctx, cancellationToken)
-                );
+                )
+            .WithTrackingName("R3Events.Generic.0_CreateSyntaxProvider");
 
         // Generate source output for each attributed class (non-generic), with language version for warning
         var sourceWithLangVersion = source.Combine(languageVersionProvider);

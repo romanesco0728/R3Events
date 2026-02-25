@@ -53,4 +53,49 @@ internal static class CSharpGeneratorRunner
         var compilationDiagnostics = newCompilation.GetDiagnostics();
         return diagnostics.Concat(compilationDiagnostics).ToArray();
     }
+
+    public static (string Key, string Reasons)[][] GetIncrementalGeneratorTrackedStepsReasons(string keyPrefixFilter, params string[] sources)
+    {
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11);
+        var driver = CSharpGeneratorDriver.Create(
+            [new R3EventsGenerator().AsSourceGenerator()],
+            driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true))
+            .WithUpdatedParseOptions(parseOptions);
+
+        var generatorResults = sources
+            .Select(source =>
+            {
+                var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+                driver = driver.RunGenerators(compilation);
+                return driver.GetRunResult().Results[0];
+            })
+            .ToArray();
+
+        var reasons = generatorResults
+            .Select(x => x.TrackedSteps
+                .Where(x => x.Key.StartsWith(keyPrefixFilter) || x.Key == "SourceOutput")
+                .Select(x =>
+                {
+                    if (x.Key == "SourceOutput")
+                    {
+                        var values = x.Value.Where(x => x.Inputs[0].Source.Name?.StartsWith(keyPrefixFilter) ?? false);
+                        return (
+                            x.Key,
+                            Reasons: string.Join(", ", values.SelectMany(x => x.Outputs).Select(x => x.Reason).ToArray())
+                        );
+                    }
+                    else
+                    {
+                        return (
+                            Key: x.Key.Substring(keyPrefixFilter.Length),
+                            Reasons: string.Join(", ", x.Value.SelectMany(x => x.Outputs).Select(x => x.Reason).ToArray())
+                        );
+                    }
+                })
+                .OrderBy(x => x.Key)
+                .ToArray())
+            .ToArray();
+
+        return reasons;
+    }
 }
