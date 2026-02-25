@@ -196,6 +196,7 @@ namespace R3Events
         {
             ClassNamespace = classNamespace,
             ClassName = className,
+            // Keep full symbol display for diagnostics because namespace/name alone cannot represent nested or generic forms.
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
@@ -253,6 +254,7 @@ namespace R3Events
         {
             ClassNamespace = classNamespace,
             ClassName = className,
+            // Keep full symbol display for diagnostics because namespace/name alone cannot represent nested or generic forms.
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
@@ -586,7 +588,9 @@ partial class {{className}}
         /// </summary>
         public required EquatableArray<GeneratedMethodInfo> GeneratedMethods { get; init; }
         /// <summary>
-        /// Gets the fully qualified display name of the attributed class.
+        /// Gets the fully qualified display name of the attributed class used in diagnostics.
+        /// This value preserves nested-type and generic-arity information that cannot be reconstructed
+        /// only from <see cref="ClassNamespace"/> and <see cref="ClassName"/>.
         /// </summary>
         public required string ClassDisplayName { get; init; }
         /// <summary>
