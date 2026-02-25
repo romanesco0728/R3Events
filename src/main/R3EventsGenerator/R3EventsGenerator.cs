@@ -176,38 +176,9 @@ namespace R3Events
         var attrib = ctx.Attributes[0];
         var arg = attrib.ConstructorArguments[0];
         var targetTypeSymbol = (INamedTypeSymbol)arg.Value!;
-
-        // Extract method information from the target type
-        var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
-        var targetTypeFullName = targetTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-        // Get class namespace and name
-        var containingNamespace = classSymbol.ContainingNamespace;
-        var classNamespace = containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
-        var className = classSymbol.Name;
-        var isNested = classDeclaration.Parent is TypeDeclarationSyntax;
-        var isStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
-        var isGeneric = classDeclaration.TypeParameterList is not null;
-        var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
-        var partialLocation = classDeclaration.Identifier.GetLocation();
         var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
-        return new()
-        {
-            ClassNamespace = classNamespace,
-            ClassName = className,
-            ClassDisplayName = BuildClassDisplayName(classSymbol),
-            GeneratedMethods = generatedMethods,
-            TargetTypeFullName = targetTypeFullName,
-            IsNested = isNested,
-            IsStatic = isStatic,
-            IsGeneric = isGeneric,
-            IsPartial = isPartial,
-            PartialLocation = new(partialLocation),
-            PartialLocationKey = LocationKey.From(partialLocation),
-            AttributeLocation = new(attributeLocation),
-            AttributeLocationKey = LocationKey.From(attributeLocation),
-        };
+        return BuildParsedProperty(classSymbol, classDeclaration, targetTypeSymbol, attributeLocation);
     }
 
     /// <summary>
@@ -233,7 +204,25 @@ namespace R3Events
         
         // For generic attribute, the type is specified as a type argument
         var targetTypeSymbol = (INamedTypeSymbol)attrib.AttributeClass!.TypeArguments[0];
+        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
+        return BuildParsedProperty(classSymbol, classDeclaration, targetTypeSymbol, attributeLocation);
+    }
+
+    /// <summary>
+    /// Builds a parsed property model from class/attribute context shared by generic and non-generic attributes.
+    /// </summary>
+    /// <param name="classSymbol">The attributed class symbol.</param>
+    /// <param name="classDeclaration">The attributed class declaration syntax.</param>
+    /// <param name="targetTypeSymbol">The target type symbol referenced by the attribute.</param>
+    /// <param name="attributeLocation">The source location where the attribute is applied.</param>
+    /// <returns>A parsed property instance used for diagnostics and source generation.</returns>
+    private static ParsedProperty BuildParsedProperty(
+        INamedTypeSymbol classSymbol,
+        ClassDeclarationSyntax classDeclaration,
+        INamedTypeSymbol targetTypeSymbol,
+        Location attributeLocation)
+    {
         // Extract method information from the target type
         var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
         var targetTypeFullName = targetTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -247,7 +236,6 @@ namespace R3Events
         var isGeneric = classDeclaration.TypeParameterList is not null;
         var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         var partialLocation = classDeclaration.Identifier.GetLocation();
-        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
         return new()
         {
