@@ -190,6 +190,7 @@ namespace R3Events
         var isGeneric = classDeclaration.TypeParameterList is not null;
         var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         var partialLocation = classDeclaration.Identifier.GetLocation();
+        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
         return new()
         {
@@ -202,8 +203,10 @@ namespace R3Events
             IsStatic = isStatic,
             IsGeneric = isGeneric,
             IsPartial = isPartial,
-            PartialLocation = partialLocation,
-            AttributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None,
+            PartialLocation = new(partialLocation),
+            PartialLocationKey = LocationKey.From(partialLocation),
+            AttributeLocation = new(attributeLocation),
+            AttributeLocationKey = LocationKey.From(attributeLocation),
         };
     }
 
@@ -244,6 +247,7 @@ namespace R3Events
         var isGeneric = classDeclaration.TypeParameterList is not null;
         var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         var partialLocation = classDeclaration.Identifier.GetLocation();
+        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
         return new()
         {
@@ -256,8 +260,10 @@ namespace R3Events
             IsStatic = isStatic,
             IsGeneric = isGeneric,
             IsPartial = isPartial,
-            PartialLocation = partialLocation,
-            AttributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None,
+            PartialLocation = new(partialLocation),
+            PartialLocationKey = LocationKey.From(partialLocation),
+            AttributeLocation = new(attributeLocation),
+            AttributeLocationKey = LocationKey.From(attributeLocation),
         };
     }
 
@@ -540,6 +546,28 @@ partial class {{className}}
     }
 
     /// <summary>
+    /// Represents a deterministic key for Roslyn locations used in incremental equality comparisons.
+    /// </summary>
+    private readonly record struct LocationKey(string FilePath, int Start, int Length, bool IsInSource)
+    {
+        /// <summary>
+        /// Creates a stable key from the specified location.
+        /// </summary>
+        /// <param name="location">The location to convert into a key.</param>
+        /// <returns>A key containing file path and span information.</returns>
+        public static LocationKey From(Location location)
+        {
+            if (!location.IsInSource || location.SourceTree is null)
+            {
+                return new(string.Empty, 0, 0, false);
+            }
+
+            var span = location.SourceSpan;
+            return new(location.SourceTree.FilePath, span.Start, span.Length, true);
+        }
+    }
+
+    /// <summary>
     /// Represents metadata for a class and its associated generated Observable extension methods as parsed from an
     /// R3EventAttribute.
     /// </summary>
@@ -569,7 +597,11 @@ partial class {{className}}
         /// Gets the location of the R3EventAttribute application site (the attribute node in source).
         /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.
         /// </summary>
-        public required Location AttributeLocation { get; init; }
+        public required IgnoreEquality<Location> AttributeLocation { get; init; }
+        /// <summary>
+        /// Gets the deterministic comparison key for the attribute application location.
+        /// </summary>
+        public required LocationKey AttributeLocationKey { get; init; }
         /// <summary>
         /// Gets a value indicating whether the attributed class is nested within another type.
         /// </summary>
@@ -589,7 +621,11 @@ partial class {{className}}
         /// <summary>
         /// Gets the location of the class identifier for diagnostics related to class declaration requirements.
         /// </summary>
-        public required Location PartialLocation { get; init; }
+        public required IgnoreEquality<Location> PartialLocation { get; init; }
+        /// <summary>
+        /// Gets the deterministic comparison key for the class identifier location.
+        /// </summary>
+        public required LocationKey PartialLocationKey { get; init; }
         /// <summary>
         /// Gets the base hint name used for generated source file names.
         /// </summary>
