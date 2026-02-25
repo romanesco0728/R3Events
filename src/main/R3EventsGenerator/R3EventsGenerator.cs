@@ -19,20 +19,20 @@ public partial class R3EventsGenerator : IIncrementalGenerator
     {
         // Get the compilation provider to access language version
         var compilationProvider = context.CompilationProvider;
-        
+
         // Emit the R3EventAttribute definition in post-initialization based on language version
         context.RegisterPostInitializationOutput(ctx =>
         {
             EmitDefaultAttribute(ctx);
         });
-        
+
         // Emit the generic R3EventAttribute<T> if language version supports it (C# 11+)
         var languageVersionProvider = compilationProvider.Select(static (compilation, _) =>
         {
             // Get the maximum language version across all syntax trees to ensure
             // the generic attribute is available when any file uses C# 11+
             var maxLanguageVersion = LanguageVersion.CSharp1;
-            
+
             foreach (var tree in compilation.SyntaxTrees)
             {
                 if (tree.Options is CSharpParseOptions parseOptions)
@@ -43,10 +43,10 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     }
                 }
             }
-            
+
             return maxLanguageVersion;
         });
-        
+
         context.RegisterSourceOutput(languageVersionProvider, static (spc, languageVersion) =>
         {
             if (languageVersion >= LanguageVersion.CSharp11)
@@ -68,6 +68,18 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                 )
             .WithTrackingName("R3Events.NonGeneric.0_CreateSyntaxProvider");
 
+        var sourceDiagnostics = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: "R3Events.R3EventAttribute",
+                predicate: static (node, cancellationToken) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
+                },
+                transform: static (ctx, cancellationToken) => ParseDiagnostic(ctx, cancellationToken)
+                )
+            .WithTrackingName("R3Events.NonGenericDiag.0_CreateSyntaxProvider");
+
         // Use ForAttributeWithMetadataName to efficiently find classes decorated with R3EventAttribute<T> (generic)
         var genericSource = context.SyntaxProvider
             .ForAttributeWithMetadataName(
@@ -81,12 +93,28 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                 )
             .WithTrackingName("R3Events.Generic.0_CreateSyntaxProvider");
 
-        // Generate source output for each attributed class (non-generic), with language version for warning
-        var sourceWithLangVersion = source.Combine(languageVersionProvider);
-        context.RegisterSourceOutput(sourceWithLangVersion, static (spc, pair) => EmitNonGenericSourceOutput(spc, pair.Left, pair.Right));
-        
+        var genericSourceDiagnostics = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: "R3Events.R3EventAttribute`1",
+                predicate: static (node, cancellationToken) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
+                },
+                transform: static (ctx, cancellationToken) => ParseGenericDiagnostic(ctx, cancellationToken)
+                )
+            .WithTrackingName("R3Events.GenericDiag.0_CreateSyntaxProvider");
+
+        // Generate source output for each attributed class (non-generic)
+        context.RegisterSourceOutput(source, static (spc, item) => EmitSourceOutput(spc, item));
+        // Report diagnostics/warnings for each attributed class (non-generic), with language version for warning
+        var sourceDiagnosticsWithLangVersion = sourceDiagnostics.Combine(languageVersionProvider);
+        context.RegisterSourceOutput(sourceDiagnosticsWithLangVersion, static (spc, pair) => EmitNonGenericDiagnosticsOutput(spc, pair.Left, pair.Right));
+
         // Generate source output for each attributed class (generic)
         context.RegisterSourceOutput(genericSource, static (spc, item) => EmitSourceOutput(spc, item));
+        // Report diagnostics for each attributed class (generic)
+        context.RegisterSourceOutput(genericSourceDiagnostics, static (spc, item) => EmitDiagnosticsOutput(spc, item));
     }
 
     /// <summary>
@@ -162,14 +190,14 @@ namespace R3Events
     /// </summary>
     /// <remarks>
     /// This method throws an <see cref="OperationCanceledException"/> if the cancellation token is signaled.
-    /// The returned <see cref="ParsedProperty"/> includes fully qualified names and method details for use in code generation scenarios.
+    /// The returned <see cref="ParsedGenerationProperty"/> includes fully qualified names and method details for use in code generation scenarios.
     /// </remarks>
     /// <param name="ctx">The generator attribute context containing the target symbol, node, and associated attributes to be parsed.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
     /// <returns>
-    /// A <see cref="ParsedProperty"/> instance containing extracted class metadata and generated method information based on the target type.
+    /// A <see cref="ParsedGenerationProperty"/> instance containing extracted class metadata and generated method information based on the target type.
     /// </returns>
-    private static ParsedProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    private static ParsedGenerationProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -178,9 +206,8 @@ namespace R3Events
         var attrib = ctx.Attributes[0];
         var arg = attrib.ConstructorArguments[0];
         var targetTypeSymbol = (INamedTypeSymbol)arg.Value!;
-        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
-        return BuildParsedProperty(classSymbol, classDeclaration, targetTypeSymbol, attributeLocation);
+        return BuildParsedGenerationProperty(classSymbol, classDeclaration, targetTypeSymbol);
     }
 
     /// <summary>
@@ -189,26 +216,49 @@ namespace R3Events
     /// <remarks>
     /// This method handles the generic attribute variant where the target type is specified as a type parameter.
     /// This method throws an <see cref="OperationCanceledException"/> if the cancellation token is signaled.
-    /// The returned <see cref="ParsedProperty"/> includes fully qualified names and method details for use in code generation scenarios.
+    /// The returned <see cref="ParsedGenerationProperty"/> includes fully qualified names and method details for use in code generation scenarios.
     /// </remarks>
     /// <param name="ctx">The generator attribute context containing the target symbol, node, and associated attributes to be parsed.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
     /// <returns>
-    /// A <see cref="ParsedProperty"/> instance containing extracted class metadata and generated method information based on the target type.
+    /// A <see cref="ParsedGenerationProperty"/> instance containing extracted class metadata and generated method information based on the target type.
     /// </returns>
-    private static ParsedProperty ParseGeneric(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    private static ParsedGenerationProperty ParseGeneric(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
         var classDeclaration = (ClassDeclarationSyntax)ctx.TargetNode;
         var attrib = ctx.Attributes[0];
-        
+
         // For generic attribute, the type is specified as a type argument
         var targetTypeSymbol = (INamedTypeSymbol)attrib.AttributeClass!.TypeArguments[0];
+
+        return BuildParsedGenerationProperty(classSymbol, classDeclaration, targetTypeSymbol);
+    }
+
+    private static ParsedDiagnosticProperty ParseDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+        var classDeclaration = (ClassDeclarationSyntax)ctx.TargetNode;
+        var attrib = ctx.Attributes[0];
         var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
 
-        return BuildParsedProperty(classSymbol, classDeclaration, targetTypeSymbol, attributeLocation);
+        return BuildParsedDiagnosticProperty(classSymbol, classDeclaration, attributeLocation);
+    }
+
+    private static ParsedDiagnosticProperty ParseGenericDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var classSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+        var classDeclaration = (ClassDeclarationSyntax)ctx.TargetNode;
+        var attrib = ctx.Attributes[0];
+        var attributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None;
+
+        return BuildParsedDiagnosticProperty(classSymbol, classDeclaration, attributeLocation);
     }
 
     /// <summary>
@@ -217,13 +267,11 @@ namespace R3Events
     /// <param name="classSymbol">The attributed class symbol.</param>
     /// <param name="classDeclaration">The attributed class declaration syntax.</param>
     /// <param name="targetTypeSymbol">The target type symbol referenced by the attribute.</param>
-    /// <param name="attributeLocation">The source location where the attribute is applied.</param>
-    /// <returns>A parsed property instance used for diagnostics and source generation.</returns>
-    private static ParsedProperty BuildParsedProperty(
+    /// <returns>A parsed property instance used for source generation.</returns>
+    private static ParsedGenerationProperty BuildParsedGenerationProperty(
         INamedTypeSymbol classSymbol,
         ClassDeclarationSyntax classDeclaration,
-        INamedTypeSymbol targetTypeSymbol,
-        Location attributeLocation)
+        INamedTypeSymbol targetTypeSymbol)
     {
         // Extract method information from the target type
         var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
@@ -237,7 +285,6 @@ namespace R3Events
         var isStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
         var isGeneric = classDeclaration.TypeParameterList is not null;
         var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
-        var partialLocation = classDeclaration.Identifier.GetLocation();
 
         return new()
         {
@@ -250,6 +297,22 @@ namespace R3Events
             IsStatic = isStatic,
             IsGeneric = isGeneric,
             IsPartial = isPartial,
+        };
+    }
+
+    private static ParsedDiagnosticProperty BuildParsedDiagnosticProperty(
+        INamedTypeSymbol classSymbol,
+        ClassDeclarationSyntax classDeclaration,
+        Location attributeLocation)
+    {
+        var partialLocation = classDeclaration.Identifier.GetLocation();
+        return new()
+        {
+            ClassDisplayName = BuildClassDisplayName(classSymbol),
+            IsNested = classDeclaration.Parent is TypeDeclarationSyntax,
+            IsStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword)),
+            IsGeneric = classDeclaration.TypeParameterList is not null,
+            IsPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)),
             PartialLocation = new(partialLocation),
             PartialLocationKey = LocationKey.From(partialLocation),
             AttributeLocation = new(attributeLocation),
@@ -352,12 +415,11 @@ namespace R3Events
     /// <param name="spc">The source production context used to add generated source and report diagnostics.</param>
     /// <param name="item">The parsed property containing event information and target type details.</param>
     /// <param name="languageVersion">The C# language version in use, used to determine whether to suggest the generic attribute.</param>
-    private static void EmitNonGenericSourceOutput(SourceProductionContext spc, ParsedProperty item, LanguageVersion languageVersion)
+    private static void EmitNonGenericDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item, LanguageVersion languageVersion)
     {
         if (Diagnose(item) is { } diag)
         {
             spc.ReportDiagnostic(diag);
-            return;
         }
 
         // Emit a warning when the non-generic attribute is used but C# 11+ makes the generic version available
@@ -369,16 +431,21 @@ namespace R3Events
                 item.ClassDisplayName
             ));
         }
-
-        var hintName = $"{item.HintBaseName}.g.cs";
-        spc.AddSource(hintName, SourceText.From(GenerateSource(item), Encoding.UTF8));
     }
 
-    private static void EmitSourceOutput(SourceProductionContext spc, ParsedProperty item)
+    private static void EmitDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item)
     {
         if (Diagnose(item) is { } diag)
         {
             spc.ReportDiagnostic(diag);
+            return;
+        }
+    }
+
+    private static void EmitSourceOutput(SourceProductionContext spc, ParsedGenerationProperty item)
+    {
+        if (HasDeclarationError(item))
+        {
             return;
         }
 
@@ -391,7 +458,7 @@ namespace R3Events
     /// </summary>
     /// <param name="item">The property to analyze for class declaration requirements.</param>
     /// <returns>A diagnostic indicating declaration constraints if violated; otherwise, <see langword="null"/>.</returns>
-    private static Diagnostic? Diagnose(ParsedProperty item)
+    private static Diagnostic? Diagnose(ParsedDiagnosticProperty item)
     {
         if (item.IsNested)
         {
@@ -432,6 +499,11 @@ namespace R3Events
         return null;
     }
 
+    private static bool HasDeclarationError(ParsedGenerationProperty item)
+    {
+        return item.IsNested || !item.IsStatic || item.IsGeneric || !item.IsPartial;
+    }
+
     /// <summary>
     /// Generates C# source code for extension methods that expose events of a parsed property as observables.
     /// </summary>
@@ -445,7 +517,7 @@ namespace R3Events
     /// <returns>
     /// A string containing the generated C# source code for observable extension methods, including namespace and class declarations as appropriate.
     /// </returns>
-    private static string GenerateSource(ParsedProperty item)
+    private static string GenerateSource(ParsedGenerationProperty item)
     {
         var methodsBuilder = new StringBuilder();
 
@@ -572,7 +644,7 @@ partial class {{className}}
     /// Represents metadata for a class and its associated generated Observable extension methods as parsed from an
     /// R3EventAttribute.
     /// </summary>
-    private sealed record ParsedProperty
+    private sealed record ParsedGenerationProperty
     {
         /// <summary>
         /// Gets the fully qualified namespace of the attributed class, or an empty string if the class is in the global namespace.
@@ -596,6 +668,39 @@ partial class {{className}}
         /// Gets the fully qualified type name of the target type referenced in the R3EventAttribute.
         /// </summary>
         public required string TargetTypeFullName { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is nested within another type.
+        /// </summary>
+        public required bool IsNested { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is declared as static.
+        /// </summary>
+        public required bool IsStatic { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is a generic type.
+        /// </summary>
+        public required bool IsGeneric { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is declared as partial.
+        /// </summary>
+        public required bool IsPartial { get; init; }
+        /// <summary>
+        /// Gets the base hint name used for generated source file names.
+        /// </summary>
+        public string HintBaseName => (string.IsNullOrEmpty(ClassNamespace) ? ClassName : $"{ClassNamespace}.{ClassName}")
+            .Replace("global::", "")
+            .Replace("<", "_")
+            .Replace(">", "_");
+    }
+
+    private sealed record ParsedDiagnosticProperty
+    {
+        /// <summary>
+        /// Gets the fully qualified display name of the attributed class used in diagnostics.
+        /// This value preserves nested-type and generic-arity information that cannot be reconstructed
+        /// only from namespace and simple type name.
+        /// </summary>
+        public required string ClassDisplayName { get; init; }
         /// <summary>
         /// Gets the location of the R3EventAttribute application site (the attribute node in source).
         /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.
@@ -629,12 +734,5 @@ partial class {{className}}
         /// Gets the deterministic comparison key for the class identifier location.
         /// </summary>
         public required LocationKey PartialLocationKey { get; init; }
-        /// <summary>
-        /// Gets the base hint name used for generated source file names.
-        /// </summary>
-        public string HintBaseName => (string.IsNullOrEmpty(ClassNamespace) ? ClassName : $"{ClassNamespace}.{ClassName}")
-            .Replace("global::", "")
-            .Replace("<", "_")
-            .Replace(">", "_");
     }
 }

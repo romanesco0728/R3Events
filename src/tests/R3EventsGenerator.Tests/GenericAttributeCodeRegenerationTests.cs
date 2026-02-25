@@ -436,4 +436,44 @@ public static class Outer
         reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for nesting change scenario");
         reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes nested and diagnostic condition changes");
     }
+
+    [TestMethod]
+    public void Ideal_OnlyAttributeLocationShifted_ShouldBeTrackedAsUnchanged()
+    {
+        // lang=C#-test
+        var step1 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        // lang=C#-test
+        var step2 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+
+        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for ideal location-shift-only scenario");
+        reasons[1][0].Reasons.ShouldBe("Unchanged", "Ideally second run should be Unchanged when only attribute/class source location shifts without semantic changes");
+    }
 }
