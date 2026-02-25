@@ -196,8 +196,7 @@ namespace R3Events
         {
             ClassNamespace = classNamespace,
             ClassName = className,
-            // Keep full symbol display for diagnostics because namespace/name alone cannot represent nested or generic forms.
-            ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            ClassDisplayName = BuildClassDisplayName(classSymbol),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
             IsNested = isNested,
@@ -254,8 +253,7 @@ namespace R3Events
         {
             ClassNamespace = classNamespace,
             ClassName = className,
-            // Keep full symbol display for diagnostics because namespace/name alone cannot represent nested or generic forms.
-            ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            ClassDisplayName = BuildClassDisplayName(classSymbol),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
             IsNested = isNested,
@@ -267,6 +265,17 @@ namespace R3Events
             AttributeLocation = new(attributeLocation),
             AttributeLocationKey = LocationKey.From(attributeLocation),
         };
+    }
+
+    /// <summary>
+    /// Builds a fully qualified class display name for diagnostics.
+    /// This preserves nested and generic type information that is not available from namespace and name alone.
+    /// </summary>
+    /// <param name="classSymbol">The class symbol to format.</param>
+    /// <returns>The fully qualified display name of the class symbol.</returns>
+    private static string BuildClassDisplayName(INamedTypeSymbol classSymbol)
+    {
+        return classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
     /// <summary>
