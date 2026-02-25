@@ -148,4 +148,163 @@ public static partial class PersonExtensions
         reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for unchanged-input scenario");
         reasons[1][0].Reasons.ShouldBe("Unchanged", "Second run should be tracked as Unchanged when the input source is identical");
     }
+
+    [TestMethod]
+    public void ExtensionClassRemovedStaticModifier_ShouldBeTrackedAsModified()
+    {
+        // lang=C#-test
+        var step1 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        // lang=C#-test
+        var step2 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public partial class PersonExtensions
+{
+}
+""";
+
+        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+
+        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for static-modifier change scenario");
+        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when static modifier is removed and diagnostic condition changes");
+    }
+
+    [TestMethod]
+    public void ExtensionClassRemovedPartialModifier_ShouldBeTrackedAsModified()
+    {
+        // lang=C#-test
+        var step1 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        // lang=C#-test
+        var step2 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static class PersonExtensions
+{
+}
+""";
+
+        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+
+        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for partial-modifier change scenario");
+        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when partial modifier is removed and diagnostic condition changes");
+    }
+
+    [TestMethod]
+    public void ExtensionClassBecameGeneric_ShouldBeTrackedAsModified()
+    {
+        // lang=C#-test
+        var step1 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        // lang=C#-test
+        var step2 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions<T>
+{
+}
+""";
+
+        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+
+        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for generic-arity change scenario");
+        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes generic and diagnostic condition changes");
+    }
+
+    [TestMethod]
+    public void ExtensionClassBecameNested_ShouldBeTrackedAsModified()
+    {
+        // lang=C#-test
+        var step1 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+[R3Events.R3Event<Person>]
+public static partial class PersonExtensions
+{
+}
+""";
+
+        // lang=C#-test
+        var step2 = """
+namespace IncrementalTest;
+
+public class Person
+{
+    public event System.EventHandler<string>? NameChanged;
+}
+
+public static class Outer
+{
+    [R3Events.R3Event<Person>]
+    public static partial class PersonExtensions
+    {
+    }
+}
+""";
+
+        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+
+        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for nesting change scenario");
+        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes nested and diagnostic condition changes");
+    }
 }
