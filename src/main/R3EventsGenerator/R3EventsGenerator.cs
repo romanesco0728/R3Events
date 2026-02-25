@@ -185,6 +185,11 @@ namespace R3Events
         var containingNamespace = classSymbol.ContainingNamespace;
         var classNamespace = containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
         var className = classSymbol.Name;
+        var isNested = classDeclaration.Parent is TypeDeclarationSyntax;
+        var isStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
+        var isGeneric = classDeclaration.TypeParameterList is not null;
+        var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
+        var partialLocation = classDeclaration.Identifier.GetLocation();
 
         return new()
         {
@@ -193,8 +198,12 @@ namespace R3Events
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
-            ClassDeclaration = new(classDeclaration),
-            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
+            IsNested = isNested,
+            IsStatic = isStatic,
+            IsGeneric = isGeneric,
+            IsPartial = isPartial,
+            PartialLocation = partialLocation,
+            AttributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None,
         };
     }
 
@@ -230,6 +239,11 @@ namespace R3Events
         var containingNamespace = classSymbol.ContainingNamespace;
         var classNamespace = containingNamespace.IsGlobalNamespace ? string.Empty : containingNamespace.ToDisplayString();
         var className = classSymbol.Name;
+        var isNested = classDeclaration.Parent is TypeDeclarationSyntax;
+        var isStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
+        var isGeneric = classDeclaration.TypeParameterList is not null;
+        var isPartial = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
+        var partialLocation = classDeclaration.Identifier.GetLocation();
 
         return new()
         {
@@ -238,8 +252,12 @@ namespace R3Events
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
-            ClassDeclaration = new(classDeclaration),
-            AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
+            IsNested = isNested,
+            IsStatic = isStatic,
+            IsGeneric = isGeneric,
+            IsPartial = isPartial,
+            PartialLocation = partialLocation,
+            AttributeLocation = attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None,
         };
     }
 
@@ -340,7 +358,7 @@ namespace R3Events
         {
             spc.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.PreferGenericAttribute,
-                item.AttributeLocation.Value,
+                item.AttributeLocation,
                 item.ClassDisplayName
             ));
         }
@@ -364,8 +382,8 @@ namespace R3Events
     /// <summary>
     /// Analyzes the specified property and returns a diagnostic result.
     /// </summary>
-    /// <param name="item">The property to analyze for partial declaration.</param>
-    /// <returns>A diagnostic indicating that the property must be partial if it is not declared as such; otherwise, <see langword="null"/>.</returns>
+    /// <param name="item">The property to analyze for class declaration requirements.</param>
+    /// <returns>A diagnostic indicating declaration constraints if violated; otherwise, <see langword="null"/>.</returns>
     private static Diagnostic? Diagnose(ParsedProperty item)
     {
         if (item.IsNested)
@@ -403,6 +421,7 @@ namespace R3Events
                 item.ClassDisplayName
                 );
         }
+
         return null;
     }
 
@@ -547,30 +566,33 @@ partial class {{className}}
         /// </summary>
         public required string TargetTypeFullName { get; init; }
         /// <summary>
-        /// Gets the syntax node representing the class declaration of the attributed class.
-        /// </summary>
-        public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
-        /// <summary>
         /// Gets the location of the R3EventAttribute application site (the attribute node in source).
         /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.
         /// </summary>
-        public required IgnoreEquality<Location> AttributeLocation { get; init; }
-
+        public required Location AttributeLocation { get; init; }
         /// <summary>
         /// Gets a value indicating whether the attributed class is nested within another type.
         /// </summary>
-        public bool IsNested => ClassDeclaration.Value.Parent is TypeDeclarationSyntax;
+        public required bool IsNested { get; init; }
         /// <summary>
         /// Gets a value indicating whether the attributed class is declared as static.
         /// </summary>
-        public bool IsStatic => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword));
+        public required bool IsStatic { get; init; }
         /// <summary>
         /// Gets a value indicating whether the attributed class is a generic type.
         /// </summary>
-        public bool IsGeneric => ClassDeclaration.Value.TypeParameterList is not null;
-        public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
-        public Location PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
-
+        public required bool IsGeneric { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the attributed class is declared as partial.
+        /// </summary>
+        public required bool IsPartial { get; init; }
+        /// <summary>
+        /// Gets the location of the class identifier for diagnostics related to class declaration requirements.
+        /// </summary>
+        public required Location PartialLocation { get; init; }
+        /// <summary>
+        /// Gets the base hint name used for generated source file names.
+        /// </summary>
         public string HintBaseName => (string.IsNullOrEmpty(ClassNamespace) ? ClassName : $"{ClassNamespace}.{ClassName}")
             .Replace("global::", "")
             .Replace("<", "_")
