@@ -193,7 +193,6 @@ namespace R3Events
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
-            ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
             AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
@@ -239,7 +238,6 @@ namespace R3Events
             ClassDisplayName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             GeneratedMethods = generatedMethods,
             TargetTypeFullName = targetTypeFullName,
-            ClassSymbol = new(classSymbol),
             ClassDeclaration = new(classDeclaration),
             AttributeLocation = new(attrib.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? Location.None),
         };
@@ -549,10 +547,6 @@ partial class {{className}}
         /// </summary>
         public required string TargetTypeFullName { get; init; }
         /// <summary>
-        /// Gets the symbol of the attributed class.
-        /// </summary>
-        public required IgnoreEquality<INamedTypeSymbol> ClassSymbol { get; init; }
-        /// <summary>
         /// Gets the syntax node representing the class declaration of the attributed class.
         /// </summary>
         public required IgnoreEquality<ClassDeclarationSyntax> ClassDeclaration { get; init; }
@@ -577,7 +571,7 @@ partial class {{className}}
         public bool IsPartial => ClassDeclaration.Value.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword));
         public Location PartialLocation => ClassDeclaration.Value.Identifier.GetLocation();
 
-        public string HintBaseName => ClassSymbol.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+        public string HintBaseName => (string.IsNullOrEmpty(ClassNamespace) ? ClassName : $"{ClassNamespace}.{ClassName}")
             .Replace("global::", "")
             .Replace("<", "_")
             .Replace(">", "_");
