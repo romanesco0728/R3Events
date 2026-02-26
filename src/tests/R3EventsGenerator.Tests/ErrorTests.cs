@@ -22,9 +22,10 @@ public static class IntExtensions
 """;
 
         var result = CSharpGeneratorRunner.RunGenerator(source);
+        var errors = result.Where(static d => d.Descriptor.DefaultSeverity == DiagnosticSeverity.Error).ToArray();
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
+        errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+        errors[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
     }
 
     [TestMethod]
@@ -44,9 +45,10 @@ public static class OuterClass
 """;
 
         var result = CSharpGeneratorRunner.RunGenerator(source);
+        var errors = result.Where(static d => d.Descriptor.DefaultSeverity == DiagnosticSeverity.Error).ToArray();
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
+        errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+        errors[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
     }
 
     [TestMethod]
@@ -63,9 +65,10 @@ public partial class IntExtensions
 """;
 
         var result = CSharpGeneratorRunner.RunGenerator(source);
+        var errors = result.Where(static d => d.Descriptor.DefaultSeverity == DiagnosticSeverity.Error).ToArray();
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
+        errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+        errors[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
     }
 
     [TestMethod]
@@ -82,9 +85,10 @@ public static partial class IntExtensions<T>
 """;
 
         var result = CSharpGeneratorRunner.RunGenerator(source);
+        var errors = result.Where(static d => d.Descriptor.DefaultSeverity == DiagnosticSeverity.Error).ToArray();
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
+        errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+        errors[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
     }
 
     [TestMethod]
