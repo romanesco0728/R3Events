@@ -4,7 +4,7 @@ R3Events
 [![NuGet](https://img.shields.io/nuget/v/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
 [![Downloads](https://img.shields.io/nuget/dt/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
 
-C# Source Generator to create Observable extension methods for events with [R3](https://github.com/Cysharp/R3), enabling seamless integration between traditional .NET events and reactive programming.
+A C# source generator that automatically bridges .NET events and [R3](https://github.com/Cysharp/R3) reactive programming — annotate a `static partial class` with `[R3Event<T>]` and get `AsObservable()` extension methods for every public event on `T` with zero boilerplate.
 
 NuGet: [R3Events](https://www.nuget.org/packages/R3Events)
 
