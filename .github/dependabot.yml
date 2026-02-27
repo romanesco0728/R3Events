@@ -12,7 +12,7 @@ updates:
         update-types:
           - version-update:semver-patch
   - package-ecosystem: "nuget"
-    directory: "/"
+    directory: "/src"
     schedule:
       interval: "weekly" # Check for updates to NuGet packages every week
     cooldown:
