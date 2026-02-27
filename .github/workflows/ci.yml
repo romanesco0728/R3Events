@@ -72,7 +72,7 @@ jobs:
           persist-credentials: false
 
       - name: Restore
-        run: dotnet restore "$SLNX_PATH" -p:TargetFramework="${{ matrix.target_framework }}"
+        run: dotnet restore "$SLNX_PATH"
 
       - name: Test
         run: dotnet test "$SLNX_PATH" --configuration Debug --no-restore -p:TargetFramework="${{ matrix.target_framework }}"
