@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using R3EventsGenerator.Tests.Shared.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace R3EventsGenerator.Tests.LegacyLang.Utilities
 {
@@ -11,14 +10,13 @@ namespace R3EventsGenerator.Tests.LegacyLang.Utilities
         /// <summary>
         /// Initializes shared Roslyn compilation state for this test assembly.
         /// </summary>
-        [ModuleInitializer]
-        public static void InitializeCompilation()
+        static CSharpGeneratorRunner()
         {
             CSharpGeneratorRunnerCore.InitializeCompilation();
         }
 
         /// <summary>
-        /// Runs the generator with legacy defaults used by the C# 10 compatibility project.
+        /// Runs the generator with legacy defaults used by the compatibility project with lagacy language version.
         /// </summary>
         public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10)
         {
