@@ -6,7 +6,7 @@ using Shouldly;
 namespace R3EventsGenerator.Tests;
 
 [TestClass]
-public sealed class ErrorTests
+public sealed class NonGenericErrorTests
 {
     [TestMethod]
     public void R3EventOnNonPartialClass_ShouldProduceER001Error()
@@ -140,6 +140,9 @@ internal static partial class TestExtensions
 """;
 
         var result = CSharpGeneratorRunner.RunGenerator(source, languageVersion: LanguageVersion.CSharp10);
+
+        var errors = result.Where(static d => d.Descriptor.DefaultSeverity == DiagnosticSeverity.Error).ToArray();
+        errors.ShouldBeEmpty("Generator should not produce errors when non-generic attribute is used with C# 10");
 
         var r3Warnings = result.Where(d => d.Id == "R3W001").ToArray();
         r3Warnings.ShouldBeEmpty("Generator should not produce R3W001 warning when using C# 10");

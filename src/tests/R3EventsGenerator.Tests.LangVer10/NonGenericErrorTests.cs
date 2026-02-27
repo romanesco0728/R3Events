@@ -1,11 +1,36 @@
 ﻿using R3EventsGenerator.Tests.LangVer10.Utilities;
+using Microsoft.CodeAnalysis;
 using Shouldly;
 
 namespace R3EventsGenerator.Tests.LangVer10;
 
 [TestClass]
-public sealed class ErrorTests
+public sealed class NonGenericErrorTests
 {
+    [TestMethod]
+    public void NonGenericAttribute_OnCSharp10_ShouldNotProduceErrors()
+    {
+        // lang=C#-test
+        var source = @"
+namespace WarnTest;
+
+public class TestClass
+{
+    public event System.EventHandler? MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+internal static partial class TestExtensions
+{
+}
+";
+
+        var result = CSharpGeneratorRunner.RunGenerator(source);
+
+        var errors = result.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+        errors.ShouldBeEmpty("Generator should not produce errors when non-generic attribute is used in C# 10 project");
+    }
+
     [TestMethod]
     public void R3EventOnNonPartialClass_ShouldProduceER001Error()
     {
