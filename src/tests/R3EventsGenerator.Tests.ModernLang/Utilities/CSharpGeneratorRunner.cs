@@ -2,17 +2,15 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using R3EventsGenerator.Tests.Shared.Utilities;
-using System.Runtime.CompilerServices;
 
-namespace R3EventsGenerator.Tests.Utilities;
+namespace R3EventsGenerator.Tests.ModernLang.Utilities;
 
 internal static class CSharpGeneratorRunner
 {
     /// <summary>
     /// Initializes shared Roslyn compilation state for this test assembly.
     /// </summary>
-    [ModuleInitializer]
-    public static void InitializeCompilation()
+    static CSharpGeneratorRunner()
     {
         CSharpGeneratorRunnerCore.InitializeCompilation();
     }

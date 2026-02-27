@@ -1,9 +1,9 @@
-using R3EventsGenerator.Tests.Utilities;
+using R3EventsGenerator.Tests.ModernLang.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests;
+namespace R3EventsGenerator.Tests.ModernLang;
 
 [TestClass]
 public sealed class GenericAttributeTests

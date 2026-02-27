@@ -1,5 +1,5 @@
-R3Events
-===
+# R3Events
+
 [![CI](https://github.com/romanesco0728/R3Events/actions/workflows/ci.yml/badge.svg)](https://github.com/romanesco0728/R3Events/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
 [![Downloads](https://img.shields.io/nuget/dt/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
@@ -153,6 +153,7 @@ static partial class ButtonExtensions { }
 ```
 
 The attributed class must be:
+
 - `static`
 - `partial`
 - Not nested within another type
@@ -243,13 +244,14 @@ internal static partial class MyClassExtensions { }
 internal static partial class MyClassExtensions { }
 ```
 
-> **Note:** R3W001 is only emitted when the project's C# language version is 11 or later. For C# 10 and earlier, the non-generic `[R3Event(typeof(T))]` form is the only option and no warning is produced.
+> **Note:** R3W001 is only emitted when the project's C# language version is 11 or later. For C# 8-10, the non-generic `[R3Event(typeof(T))]` form is the only option and no warning is produced.
 
 ## Requirements
 
 - .NET Standard 2.0 or later
 - [R3](https://github.com/Cysharp/R3) package
-- C# 11 or later (for generic attribute syntax `R3Event<T>`)
+- C# 8.0 or later (generated code includes nullable reference type syntax such as `?`)
+- C# 11 or later (only required for generic attribute syntax `R3Event<T>`)
 
 ```
 Install-Package R3

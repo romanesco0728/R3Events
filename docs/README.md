@@ -4,6 +4,8 @@ Incremental Source Generator — Events → R3 Observable
 
 このプロジェクトのソースジェネレータは、利用側の型が定義する public イベントを自動的に global::R3.Observable<T> を返す拡張メソッドに変換するためのボイラープレートを生成します。生成は、利用側で任意の static partial クラスに `R3Events.R3EventAttribute` を付与することでトリガーされます。
 
+利用側要件として C# 8 以上が必要です（生成コードが null 許容参照型構文を含むため）。C# 11 以上ではジェネリック属性 `R3Event<T>` も利用できます。
+
 目的
 
 - イベント購読のボイラープレートを削減する。

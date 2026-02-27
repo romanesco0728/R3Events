@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using R3EventsGenerator.Tests.Utilities;
+using R3EventsGenerator.Tests.ModernLang.Utilities;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests;
+namespace R3EventsGenerator.Tests.ModernLang;
 
 [TestClass]
 public sealed class NonGenericErrorTests
