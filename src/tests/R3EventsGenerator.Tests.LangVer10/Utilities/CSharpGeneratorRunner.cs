@@ -1,59 +1,35 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using R3EventsGenerator.Tests.Shared.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace R3EventsGenerator.Tests.LangVer10.Utilities;
 
 internal static class CSharpGeneratorRunner
 {
-    static Compilation baseCompilation = default!;
-
-    static CSharpGeneratorRunner()
+    /// <summary>
+    /// Initializes shared Roslyn compilation state for this test assembly.
+    /// </summary>
+    [ModuleInitializer]
+    public static void InitializeCompilation()
     {
-        InitializeCompilation();
+        CSharpGeneratorRunnerCore.InitializeCompilation();
     }
 
-    private static void InitializeCompilation()
-    {
-        // running .NET Core system assemblies dir path
-        var baseAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        var systemAssemblies = Directory.GetFiles(baseAssemblyPath)
-            .Where(x =>
-            {
-                var fileName = Path.GetFileName(x);
-                if (fileName.EndsWith("Native.dll")) return false;
-                return fileName.StartsWith("System") || (fileName is "mscorlib.dll" or "netstandard.dll");
-            });
-
-        var references = systemAssemblies
-            .Append(typeof(R3.Observable).Assembly.Location) // Add R3 assembly for generated code compilation
-            .Select(x => MetadataReference.CreateFromFile(x))
-            .ToArray();
-
-        var compilation = CSharpCompilation.Create("generatortest",
-            references: references,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        baseCompilation = compilation;
-    }
-
+    /// <summary>
+    /// Runs the generator with legacy defaults used by the C# 10 compatibility project.
+    /// </summary>
     public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10)
     {
-        // NET 8.0 + C# 10 by default (no generic attributes support)
-        preprocessorSymbols ??= new[] { "NET8_0_OR_GREATER" };
-        var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
-        var driver = CSharpGeneratorDriver.Create(new R3EventsGenerator()).WithUpdatedParseOptions(parseOptions);
-        if (options != null)
-        {
-            driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
-        }
+        return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options);
+    }
 
-        var compilation = baseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
-
-        driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
-
-        // combine diagnostics as result.
-        var compilationDiagnostics = newCompilation.GetDiagnostics();
-        return diagnostics.Concat(compilationDiagnostics).ToArray();
+    /// <summary>
+    /// Returns tracked incremental step reasons for multi-step source changes in legacy tests.
+    /// </summary>
+    public static (string Key, string Reasons)[][] GetIncrementalGeneratorTrackedStepsReasons(string keyPrefixFilter, params string[] sources)
+    {
+        return CSharpGeneratorRunnerCore.GetIncrementalGeneratorTrackedStepsReasons(keyPrefixFilter, LanguageVersion.CSharp10, sources);
     }
 }

@@ -7,6 +7,7 @@
     <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/R3EventsGenerator.Tests.Shared/R3EventsGenerator.Tests.Shared.csproj" />
     <Project Path="tests/R3EventsGenerator.Tests.LangVer10/R3EventsGenerator.Tests.LangVer10.csproj" />
     <Project Path="tests/R3EventsGenerator.Tests/R3EventsGenerator.Tests.csproj" />
   </Folder>

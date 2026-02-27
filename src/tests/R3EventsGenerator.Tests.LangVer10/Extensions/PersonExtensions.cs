@@ -1,5 +1,5 @@
 ﻿using R3Events;
-using R3EventsGenerator.Tests.LangVer10.Models;
+using R3EventsGenerator.Tests.Shared.Models;
 
 namespace R3EventsGenerator.Tests.LangVer10.Extensions;
 

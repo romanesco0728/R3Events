@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../R3EventsGenerator.Tests.Shared/R3EventsGenerator.Tests.Shared.csproj" />
     <ProjectReference Include="../../main/R3EventsGenerator/R3EventsGenerator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>

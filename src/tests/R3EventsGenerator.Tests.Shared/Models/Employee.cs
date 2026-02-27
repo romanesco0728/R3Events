@@ -1,6 +1,6 @@
-namespace R3EventsGenerator.Tests.Models;
+namespace R3EventsGenerator.Tests.Shared.Models;
 
-internal sealed class Employee(string name, string department)
+public sealed class Employee(string name, string department)
 {
     public event EventHandler? NameChanged;
     public event EventHandler<string>? DepartmentChanged;
@@ -20,6 +20,7 @@ internal sealed class Employee(string name, string department)
             }
         }
     }
+
     public string? Department
     {
         get => _department;
