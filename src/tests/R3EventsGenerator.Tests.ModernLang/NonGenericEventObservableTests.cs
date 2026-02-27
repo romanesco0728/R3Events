@@ -1,9 +1,9 @@
 ﻿using R3;
 using R3EventsGenerator.Tests.Shared.Models;
-using R3EventsGenerator.Tests.Extensions;
+using R3EventsGenerator.Tests.ModernLang.Extensions;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests;
+namespace R3EventsGenerator.Tests.ModernLang;
 
 [TestClass]
 public sealed class NonGenericEventObservableTests

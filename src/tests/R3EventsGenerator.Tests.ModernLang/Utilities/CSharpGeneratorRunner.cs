@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using R3EventsGenerator.Tests.Shared.Utilities;
 using System.Runtime.CompilerServices;
 
-namespace R3EventsGenerator.Tests.Utilities;
+namespace R3EventsGenerator.Tests.ModernLang.Utilities;
 
 internal static class CSharpGeneratorRunner
 {

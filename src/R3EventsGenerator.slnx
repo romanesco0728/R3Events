@@ -9,6 +9,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/R3EventsGenerator.Tests.Shared/R3EventsGenerator.Tests.Shared.csproj" />
     <Project Path="tests/R3EventsGenerator.Tests.LegacyLang/R3EventsGenerator.Tests.LegacyLang.csproj" />
-    <Project Path="tests/R3EventsGenerator.Tests/R3EventsGenerator.Tests.csproj" />
+    <Project Path="tests/R3EventsGenerator.Tests.ModernLang/R3EventsGenerator.Tests.ModernLang.csproj" />
   </Folder>
 </Solution>
