@@ -25,4 +25,12 @@ internal static class CSharpGeneratorRunner
         preprocessorSymbols ??= new[] { "NET8_0_OR_GREATER" };
         return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options);
     }
+
+    /// <summary>
+    /// Returns tracked incremental step reasons for multi-step source changes in legacy tests.
+    /// </summary>
+    public static (string Key, string Reasons)[][] GetIncrementalGeneratorTrackedStepsReasons(string keyPrefixFilter, params string[] sources)
+    {
+        return CSharpGeneratorRunnerCore.GetIncrementalGeneratorTrackedStepsReasons(keyPrefixFilter, LanguageVersion.CSharp10, sources);
+    }
 }
