@@ -1,18 +1,21 @@
 ﻿using R3EventsGenerator.Tests.LangVer10.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System.Linq;
 
-namespace R3EventsGenerator.Tests.LangVer10;
-
-[TestClass]
-public sealed class NonGenericErrorTests
+namespace R3EventsGenerator.Tests.LangVer10
 {
-    [TestMethod]
-    public void NonGenericAttribute_OnCSharp10_ShouldNotProduceErrors()
+    [TestClass]
+    public sealed class NonGenericErrorTests
     {
-        // lang=C#-test
-        var source = @"
-namespace WarnTest;
+        [TestMethod]
+        public void NonGenericAttribute_OnLegacyLanguage_ShouldNotProduceErrors()
+        {
+            // lang=C#-test
+            var source = @"
+namespace WarnTest
+{
 
 public class TestClass
 {
@@ -23,39 +26,43 @@ public class TestClass
 internal static partial class TestExtensions
 {
 }
+}
 ";
 
-        var result = CSharpGeneratorRunner.RunGenerator(source);
+            var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        var errors = result.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
-        errors.ShouldBeEmpty("Generator should not produce errors when non-generic attribute is used in C# 10 project");
-    }
+            var errors = result.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+            errors.ShouldBeEmpty("Generator should not produce errors when non-generic attribute is used in legacy-language project");
+        }
 
-    [TestMethod]
-    public void R3EventOnNonPartialClass_ShouldProduceER001Error()
-    {
-        // lang=C#-test
-        var source = @"
-namespace ErrorTest;
+        [TestMethod]
+        public void R3EventOnNonPartialClass_ShouldProduceER001Error()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ErrorTest
+{
 
 [R3Events.R3Event(typeof(int))]
 public static class IntExtensions
 {
 }
+}
 ";
 
-        var result = CSharpGeneratorRunner.RunGenerator(source);
+            var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
-    }
+            result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+            result[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
+        }
 
-    [TestMethod]
-    public void R3EventOnNestedClass_ShouldProduceER002Error()
-    {
-        // lang=C#-test
-        var source = @"
-namespace ErrorTest;
+        [TestMethod]
+        public void R3EventOnNestedClass_ShouldProduceER002Error()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ErrorTest
+{
 
 public static class OuterClass
 {
@@ -64,49 +71,55 @@ public static class OuterClass
     {
     }
 }
+}
 ";
 
-        var result = CSharpGeneratorRunner.RunGenerator(source);
+            var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
-    }
+            result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+            result[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
+        }
 
-    [TestMethod]
-    public void R3EventOnNonStaticClass_ShouldProduceER003Error()
-    {
-        // lang=C#-test
-        var source = @"
-namespace ErrorTest;
+        [TestMethod]
+        public void R3EventOnNonStaticClass_ShouldProduceER003Error()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ErrorTest
+{
 
 [R3Events.R3Event(typeof(int))]
 public partial class IntExtensions
 {
 }
+}
 ";
 
-        var result = CSharpGeneratorRunner.RunGenerator(source);
+            var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
-    }
+            result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+            result[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
+        }
 
-    [TestMethod]
-    public void R3EventOnGenericClass_ShouldProduceER004Error()
-    {
-        // lang=C#-test
-        var source = @"
-namespace ErrorTest;
+        [TestMethod]
+        public void R3EventOnGenericClass_ShouldProduceER004Error()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ErrorTest
+{
 
 [R3Events.R3Event(typeof(int))]
 public static partial class IntExtensions<T>
 {
 }
+}
 ";
 
-        var result = CSharpGeneratorRunner.RunGenerator(source);
+            var result = CSharpGeneratorRunner.RunGenerator(source);
 
-        result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
-        result[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
+            result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
+            result[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
+        }
     }
 }

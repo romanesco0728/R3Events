@@ -1,16 +1,17 @@
 ﻿using R3EventsGenerator.Tests.LangVer10.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests.LangVer10;
-
-[TestClass]
-public class NonGenericAttributeCodeRegenerationTests
+namespace R3EventsGenerator.Tests.LangVer10
 {
-    [TestMethod]
-    public void TargetClassEventAdded_ShouldBeTrackedAsModified()
+    [TestClass]
+    public class NonGenericAttributeCodeRegenerationTests
     {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void TargetClassEventAdded_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -24,8 +25,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -40,17 +41,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-added scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event is added under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-added scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event is added under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void R3EventTargetTypeChanged_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void R3EventTargetTypeChanged_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -69,8 +70,8 @@ public static partial class Extensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -89,17 +90,17 @@ public static partial class Extensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic R3Event target type change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when non-generic R3Event target type changes");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic R3Event target type change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when non-generic R3Event target type changes");
+        }
 
-    [TestMethod]
-    public void TargetClassEventOrderChangedOnly_ShouldBeTrackedAsUnchanged()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void TargetClassEventOrderChangedOnly_ShouldBeTrackedAsUnchanged()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -114,8 +115,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -130,17 +131,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-order-only change scenario");
-        reasons[1][0].Reasons.ShouldBe("Unchanged", "Second run should be tracked as Unchanged when only event declaration order changes under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-order-only change scenario");
+            reasons[1][0].Reasons.ShouldBe("Unchanged", "Second run should be tracked as Unchanged when only event declaration order changes under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void TargetClassEventRemoved_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void TargetClassEventRemoved_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -155,8 +156,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -170,17 +171,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-removed scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event is removed under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-removed scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event is removed under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void TargetClassEventPayloadTypeChanged_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void TargetClassEventPayloadTypeChanged_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -194,8 +195,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -209,17 +210,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event payload-type change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event payload type changes under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event payload-type change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when an event payload type changes under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void TargetClassEventNameChanged_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void TargetClassEventNameChanged_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -233,8 +234,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -248,17 +249,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-name change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when target class event name changes under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic attribute event-name change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when target class event name changes under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void InputUnchanged_ShouldBeTrackedAsUnchanged()
-    {
-        // lang=C#-test
-        var step = @"
+        [TestMethod]
+        public void InputUnchanged_ShouldBeTrackedAsUnchanged()
+        {
+            // lang=C#-test
+            var step = @"
 namespace IncrementalTest;
 
 public class Person
@@ -272,17 +273,17 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step, step);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step, step);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic unchanged-input scenario");
-        reasons[1][0].Reasons.ShouldBe("Unchanged", "Second run should be tracked as Unchanged when the non-generic input source is identical");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic unchanged-input scenario");
+            reasons[1][0].Reasons.ShouldBe("Unchanged", "Second run should be tracked as Unchanged when the non-generic input source is identical");
+        }
 
-    [TestMethod]
-    public void ExtensionClassRemovedStaticModifier_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void ExtensionClassRemovedStaticModifier_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -296,8 +297,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -311,17 +312,17 @@ public partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic static-modifier change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when static modifier is removed under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic static-modifier change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when static modifier is removed under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void ExtensionClassRemovedPartialModifier_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void ExtensionClassRemovedPartialModifier_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -335,8 +336,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -350,17 +351,17 @@ public static class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic partial-modifier change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when partial modifier is removed under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic partial-modifier change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when partial modifier is removed under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void ExtensionClassBecameGeneric_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void ExtensionClassBecameGeneric_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -374,8 +375,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -389,17 +390,17 @@ public static partial class PersonExtensions<T>
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic generic-arity change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes generic under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic generic-arity change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes generic under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void ExtensionClassBecameNested_ShouldBeTrackedAsModified()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void ExtensionClassBecameNested_ShouldBeTrackedAsModified()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -413,8 +414,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -431,17 +432,17 @@ public static class Outer
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic nesting change scenario");
-        reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes nested under non-generic attribute usage");
-    }
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic nesting change scenario");
+            reasons[1][0].Reasons.ShouldBe("Modified", "Second run should be tracked as Modified when class becomes nested under non-generic attribute usage");
+        }
 
-    [TestMethod]
-    public void Ideal_OnlyAttributeLocationShifted_ShouldBeTrackedAsUnchanged()
-    {
-        // lang=C#-test
-        var step1 = @"
+        [TestMethod]
+        public void Ideal_OnlyAttributeLocationShifted_ShouldBeTrackedAsUnchanged()
+        {
+            // lang=C#-test
+            var step1 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -455,8 +456,8 @@ public static partial class PersonExtensions
 }
 ";
 
-        // lang=C#-test
-        var step2 = @"
+            // lang=C#-test
+            var step2 = @"
 namespace IncrementalTest;
 
 public class Person
@@ -471,9 +472,10 @@ public static partial class PersonExtensions
 }
 ";
 
-        var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
+            var reasons = CSharpGeneratorRunner.GetIncrementalGeneratorTrackedStepsReasons("R3Events.", step1, step2);
 
-        reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic ideal location-shift-only scenario");
-        reasons[1][0].Reasons.ShouldBe("Unchanged", "Ideally second run should be Unchanged when only attribute/class source location shifts without semantic changes under non-generic attribute usage");
+            reasons[0][0].Reasons.ShouldBe("New", "First run should be tracked as New for non-generic ideal location-shift-only scenario");
+            reasons[1][0].Reasons.ShouldBe("Unchanged", "Ideally second run should be Unchanged when only attribute/class source location shifts without semantic changes under non-generic attribute usage");
+        }
     }
 }
