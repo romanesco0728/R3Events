@@ -51,9 +51,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            target_frameworks: net8.0;net9.0;net10.0
-          - os: windows-2022
-            target_frameworks: net48
+            target_framework: net8.0
+          - os: ubuntu-24.04
+            target_framework: net9.0
+          - os: ubuntu-24.04
+            target_framework: net10.0
+          - os: windows-2025
+            target_framework: net48
     permissions:
       contents: read
     steps:
@@ -68,7 +72,7 @@ jobs:
           persist-credentials: false
 
       - name: Restore
-        run: dotnet restore "$SLNX_PATH" -p:TargetFrameworks="${{ matrix.target_frameworks }}"
+        run: dotnet restore "$SLNX_PATH" -p:TargetFramework="${{ matrix.target_framework }}"
 
       - name: Test
-        run: dotnet test "$SLNX_PATH" --configuration Debug --no-restore -p:TargetFrameworks="${{ matrix.target_frameworks }}"
+        run: dotnet test "$SLNX_PATH" --configuration Debug --no-restore -p:TargetFramework="${{ matrix.target_framework }}"
