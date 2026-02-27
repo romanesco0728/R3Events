@@ -22,7 +22,6 @@ internal static class CSharpGeneratorRunner
     /// </summary>
     public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11)
     {
-        preprocessorSymbols ??= ["NET8_0_OR_GREATER"];
         return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options);
     }
 

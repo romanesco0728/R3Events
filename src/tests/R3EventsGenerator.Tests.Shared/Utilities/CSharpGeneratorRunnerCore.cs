@@ -36,11 +36,12 @@ public static class CSharpGeneratorRunnerCore
     public static Diagnostic[] RunGenerator(
         string source,
         LanguageVersion languageVersion,
-        string[] preprocessorSymbols,
+        string[]? preprocessorSymbols,
         AnalyzerConfigOptionsProvider? options)
     {
         InitializeCompilation();
 
+        preprocessorSymbols ??= ["NET8_0_OR_GREATER"];
         var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
         var driver = CSharpGeneratorDriver.Create(new global::R3EventsGenerator.R3EventsGenerator())
             .WithUpdatedParseOptions(parseOptions);
