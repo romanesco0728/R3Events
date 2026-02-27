@@ -1,5 +1,5 @@
 using R3;
-using R3EventsGenerator.Tests.Models;
+using R3EventsGenerator.Tests.Shared.Models;
 using R3EventsGenerator.Tests.Extensions;
 using Shouldly;
 

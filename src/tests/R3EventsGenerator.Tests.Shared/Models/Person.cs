@@ -1,6 +1,6 @@
-﻿namespace R3EventsGenerator.Tests.Models;
+namespace R3EventsGenerator.Tests.Shared.Models;
 
-internal sealed class Person(string name, int age)
+public sealed class Person(string name, int age)
 {
     public event EventHandler? NameChanged;
     public event EventHandler<int>? AgeChanged;
@@ -20,6 +20,7 @@ internal sealed class Person(string name, int age)
             }
         }
     }
+
     public int Age
     {
         get => _age;
