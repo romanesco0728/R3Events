@@ -6,7 +6,7 @@ using Shouldly;
 namespace R3EventsGenerator.Tests;
 
 [TestClass]
-public sealed class ErrorTests
+public sealed class NonGenericErrorTests
 {
     [TestMethod]
     public void R3EventOnNonPartialClass_ShouldProduceER001Error()

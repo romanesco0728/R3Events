@@ -1,12 +1,12 @@
 ﻿using R3;
 using R3EventsGenerator.Tests.Shared.Models;
-using R3EventsGenerator.Tests.LangVer10.Extensions;
+using R3EventsGenerator.Tests.Extensions;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests.LangVer10;
+namespace R3EventsGenerator.Tests;
 
 [TestClass]
-public sealed class EventObservableTests
+public sealed class NonGenericEventObservableTests
 {
     [TestMethod]
     public void NameChangedAsObservable_ShouldEmitWhenEventFires()
