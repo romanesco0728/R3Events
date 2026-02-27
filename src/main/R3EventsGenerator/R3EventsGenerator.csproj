@@ -18,7 +18,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>R3Events</PackageId>
     <PackageProjectUrl>https://github.com/romanesco0728/R3Events</PackageProjectUrl>
-    <Description>R3Events is a source generator that creates R3 Observable wrappers for events with simple attributes.</Description>
+    <Description>C# source generator that auto-generates R3 Observable extension methods (AsObservable) for all public .NET events on a target type. Annotate a static partial class with [R3Event&lt;T&gt;] to eliminate event-to-observable boilerplate and seamlessly integrate .NET events with R3 reactive programming.</Description>
     <PackageTags>r3;events;source-generator;roslyn-analyzer;observable</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
