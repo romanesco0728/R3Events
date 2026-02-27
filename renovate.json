@@ -1,32 +1,12 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "github>aquaproj/aqua-renovate-config#2.2.1"
   ],
-  "enabledManagers": [
-    "aqua"
-  ],
-  "schedule": [
-    "before 3am on Monday"
-  ],
-  "timezone": "Asia/Tokyo",
+  "enabledManagers": ["regex"],
   "packageRules": [
     {
-      "description": "Disable patch updates for all packages to reduce noise",
-      "matchUpdateTypes": ["patch"],
-      "enabled": false
-    },
-    {
-      "description": "Auto-merge aqua-registry updates",
-      "matchManagers": ["aqua"],
       "matchPackageNames": ["aquaproj/aqua-registry"],
-      "automerge": true
-    },
-    {
-      "description": "Group aqua tool updates",
-      "matchManagers": ["aqua"],
-      "excludePackageNames": ["aquaproj/aqua-registry"],
-      "groupName": "aqua tools"
+      "extends": ["schedule:earlyMondays"]
     }
   ]
 }
