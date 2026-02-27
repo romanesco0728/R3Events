@@ -1,5 +1,8 @@
 R3Events
 ===
+[![CI](https://github.com/romanesco0728/R3Events/actions/workflows/ci.yml/badge.svg)](https://github.com/romanesco0728/R3Events/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
+[![Downloads](https://img.shields.io/nuget/dt/R3Events.svg)](https://www.nuget.org/packages/R3Events/)
 
 C# Source Generator to create Observable extension methods for events with [R3](https://github.com/Cysharp/R3), enabling seamless integration between traditional .NET events and reactive programming.
 
