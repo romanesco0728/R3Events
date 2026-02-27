@@ -122,19 +122,17 @@ public static class CSharpGeneratorRunnerCore
     /// </summary>
     private static Compilation CreateBaseCompilation()
     {
-        var baseAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        var systemAssemblies = Directory.GetFiles(baseAssemblyPath)
+        var systemAssemblies = global::System.AppDomain.CurrentDomain
+            .GetAssemblies()
+            .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+            .Select(assembly => assembly.Location)
             .Where(path =>
             {
                 var fileName = Path.GetFileName(path);
-                if (fileName.EndsWith("Native.dll", global::System.StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
                 return fileName.StartsWith("System", global::System.StringComparison.Ordinal) ||
                        fileName is "mscorlib.dll" or "netstandard.dll";
-            });
+            })
+            .Distinct(global::System.StringComparer.OrdinalIgnoreCase);
 
         var references = systemAssemblies
             .Append(typeof(global::R3.Observable).Assembly.Location)

@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'src/**'
-      - '.github/workflows/ci.yml'
+      - "src/**"
+      - ".github/workflows/ci.yml"
   push:
     branches:
       - main
@@ -44,8 +44,16 @@ jobs:
         run: dotnet build "$SLNX_PATH" --configuration Debug --no-restore
 
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target_frameworks: net8.0;net9.0;net10.0
+          - os: windows-2022
+            target_frameworks: net48
     permissions:
       contents: read
     steps:
@@ -60,7 +68,7 @@ jobs:
           persist-credentials: false
 
       - name: Restore
-        run: dotnet restore "$SLNX_PATH"
+        run: dotnet restore "$SLNX_PATH" -p:TargetFrameworks="${{ matrix.target_frameworks }}"
 
       - name: Test
-        run: dotnet test "$SLNX_PATH" --configuration Debug --no-restore
+        run: dotnet test "$SLNX_PATH" --configuration Debug --no-restore -p:TargetFrameworks="${{ matrix.target_frameworks }}"
