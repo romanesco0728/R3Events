@@ -1,10 +1,10 @@
 ﻿using R3;
 using R3EventsGenerator.Tests.Shared.Models;
-using R3EventsGenerator.Tests.LangVer10.Extensions;
+using R3EventsGenerator.Tests.LegacyLang.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests.LangVer10
+namespace R3EventsGenerator.Tests.LegacyLang
 {
     [TestClass]
     public sealed class NonGenericEventObservableTests

@@ -1,10 +1,10 @@
-﻿using R3EventsGenerator.Tests.LangVer10.Utilities;
+﻿using R3EventsGenerator.Tests.LegacyLang.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System.Linq;
 
-namespace R3EventsGenerator.Tests.LangVer10
+namespace R3EventsGenerator.Tests.LegacyLang
 {
     [TestClass]
     public sealed class NonGenericErrorTests

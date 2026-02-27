@@ -1,8 +1,8 @@
-﻿using R3EventsGenerator.Tests.LangVer10.Utilities;
+﻿using R3EventsGenerator.Tests.LegacyLang.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 
-namespace R3EventsGenerator.Tests.LangVer10
+namespace R3EventsGenerator.Tests.LegacyLang
 {
     [TestClass]
     public class NonGenericAttributeCodeRegenerationTests
