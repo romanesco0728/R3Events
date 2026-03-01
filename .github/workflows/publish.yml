@@ -133,8 +133,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
         with:
-          persist-credentials: false
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_tag_gpgsign: true
+
+      - name: Create signed tag
+        run: |
+          git tag -s "v$PACKAGE_VERSION" -m "Release v$PACKAGE_VERSION"
+          git push origin "v$PACKAGE_VERSION"
+          echo "✅ Signed tag created"
 
       - name: Create GitHub Release
         run: |
