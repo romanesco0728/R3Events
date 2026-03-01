@@ -130,27 +130,46 @@ jobs:
         with:
           persist-credentials: false
 
-      - run: gh auth setup-git
-        env:
-          GH_HOST: github.com
-
-      - name: Create and Push Git Tag
+      - name: Create Annotated Tag Object
+        id: create-tag-object
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-          git push origin "$TAG_NAME"
-          echo "✅ Git tag $TAG_NAME created and pushed"
+          TAG_OBJECT_SHA=$(jq -n \
+            --arg tag "v$PACKAGE_VERSION" \
+            --arg message "Release v$PACKAGE_VERSION" \
+            --arg object "$COMMIT_SHA" \
+            '{tag: $tag, message: $message, object: $object, type: "commit", tagger: {name: "github-actions[bot]", email: "41898282+github-actions[bot]@users.noreply.github.com"}}' \
+          | gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/git/tags" \
+            --input - \
+            --jq '.sha')
+          echo "tag_object_sha=$TAG_OBJECT_SHA" >> "$GITHUB_OUTPUT"
+          echo "✅ Created annotated tag object: $TAG_OBJECT_SHA"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: "v${{ env.PACKAGE_VERSION }}"
+          COMMIT_SHA: ${{ github.sha }}
+
+      - name: Create Tag Reference
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/git/refs" \
+            -f ref="refs/tags/v$PACKAGE_VERSION" \
+            -f sha="${{ steps.create-tag-object.outputs.tag_object_sha }}"
+          echo "✅ Created tag reference: v$PACKAGE_VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         run: |
-          gh release create "$TAG_NAME" \
-            --title "$TAG_NAME" \
-            --generate-notes
-          echo "✅ Git Release $TAG_NAME created"
+          gh release create "v$PACKAGE_VERSION" \
+            --title "v$PACKAGE_VERSION" \
+            --generate-notes \
+            --verify-tag
+          echo "✅ GitHub Release created"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: "v${{ env.PACKAGE_VERSION }}"
