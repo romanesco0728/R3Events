@@ -132,22 +132,22 @@ public partial class R3EventsGenerator : IIncrementalGenerator
 namespace R3Events
 {
     /// <summary>
-    /// Marks a static partial class for automatic generation of <see cref="global::R3.Observable`1"/> extension methods for events declared on the specified target type.
+    /// Marks a static partial class for automatic generation of <see cref="R3.Observable`1"/> extension methods for events declared on the specified target type.
     /// </summary>
     [global::System.AttributeUsage(global::System.AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute : global::System.Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="global::R3Events.R3EventAttribute"/> class with the specified target type.
+        /// Initializes a new instance of the <see cref="R3Events.R3EventAttribute"/> class with the specified target type.
         /// </summary>
-        /// <param name="type">The target <see cref="global::System.Type"/> the attribute refers to.</param>
+        /// <param name="type">The target <see cref="System.Type"/> the attribute refers to.</param>
         public R3EventAttribute(global::System.Type type)
         {
             this.Type = type ?? throw new global::System.ArgumentNullException(nameof(type));
         }
 
         /// <summary>
-        /// Gets the target <see cref="global::System.Type"/> represented by this attribute.
+        /// Gets the target <see cref="System.Type"/> represented by this attribute.
         /// </summary>
         public global::System.Type Type { get; }
     }
@@ -173,9 +173,9 @@ namespace R3Events
 namespace R3Events
 {
     /// <summary>
-    /// Marks a static partial class for automatic generation of <see cref="global::R3.Observable`1"/> extension methods for events declared on the specified target type.
+    /// Marks a static partial class for automatic generation of <see cref="R3.Observable`1"/> extension methods for events declared on the specified target type.
     /// </summary>
-    /// <typeparam name="T">The target type whose events will be exposed as <see cref="global::R3.Observable`1"/> extension methods.</typeparam>
+    /// <typeparam name="T">The target type whose events will be exposed as <see cref="R3.Observable`1"/> extension methods.</typeparam>
     [global::System.AttributeUsage(global::System.AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     internal sealed class R3EventAttribute<T> : global::System.Attribute
     {
@@ -527,7 +527,7 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an <see cref="global::R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
         /// </summary>
         public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -545,7 +545,7 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an <see cref="global::R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
         /// </summary>
         public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
