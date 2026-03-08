@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Semantic version to publish (e.g., 0.1.2)'
+        description: "Semantic version to publish (e.g., 0.1.2)"
         required: true
         type: string
       dry-run:
-        description: 'Dry run mode (no git operations)'
+        description: "Dry run mode (no git operations)"
         required: false
         type: boolean
         default: true
@@ -173,6 +173,7 @@ jobs:
         run: |
           gh release create "v$PACKAGE_VERSION" \
             --title "v$PACKAGE_VERSION" \
+            --draft \
             --generate-notes \
             "./dll/R3EventsGenerator.dll"
           echo "✅ GitHub Release created"
