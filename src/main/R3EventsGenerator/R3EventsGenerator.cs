@@ -410,7 +410,7 @@ namespace R3Events
 
     /// <summary>
     /// Generates source output for a class decorated with the non-generic R3EventAttribute, and emits a
-    /// <c>R3W001</c> warning when the language version supports the generic attribute (C# 11 or later).
+    /// <c>R3I001</c> info when the language version supports the generic attribute (C# 11 or later).
     /// </summary>
     /// <param name="spc">The source production context used to add generated source and report diagnostics.</param>
     /// <param name="item">The parsed property containing event information and target type details.</param>
