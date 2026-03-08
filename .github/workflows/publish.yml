@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Semantic version to publish (e.g., 0.1.2)'
+        description: "Semantic version to publish (e.g., 0.1.2)"
         required: true
         type: string
       dry-run:
-        description: 'Dry run mode (no git operations)'
+        description: "Dry run mode (no git operations)"
         required: false
         type: boolean
         default: true
@@ -80,6 +80,13 @@ jobs:
           path: ./nupkg/*.nupkg
           retention-days: 1
 
+      - name: Upload DLL Artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: r3events-generator-dll
+          path: src/main/R3EventsGenerator/bin/Release/netstandard2.0/R3EventsGenerator.dll
+          retention-days: 1
+
   publish-package:
     if: github.event.inputs.dry-run == 'false'
     needs: build-package
@@ -123,9 +130,29 @@ jobs:
           NUGET_SOURCE: https://api.nuget.org/v3/index.json
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
 
-  create-release:
+  attest-artifacts:
     if: github.event.inputs.dry-run == 'false'
     needs: build-package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      attestations: write
+      id-token: write
+    steps:
+      - name: Download DLL Artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: r3events-generator-dll
+          path: ./dll
+
+      - name: Attest DLL Build Provenance
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: ./dll/R3EventsGenerator.dll
+
+  create-release:
+    if: github.event.inputs.dry-run == 'false'
+    needs: [attest-artifacts, publish-package]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -136,11 +163,19 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Download DLL Artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: r3events-generator-dll
+          path: ./dll
+
       - name: Create GitHub Release
         run: |
           gh release create "v$PACKAGE_VERSION" \
             --title "v$PACKAGE_VERSION" \
-            --generate-notes
+            --draft \
+            --generate-notes \
+            "./dll/R3EventsGenerator.dll"
           echo "✅ GitHub Release created"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
