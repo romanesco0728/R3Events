@@ -108,7 +108,7 @@ control.BeforeCloseAsObservable()
   - [Generic EventHandler support](#generic-eventhandler-support)
   - [Custom delegate support](#custom-delegate-support)
 - [Diagnostics](#diagnostics)
-  - [R3W001 — Prefer generic R3EventAttribute\<T\>](#r3w001--prefer-generic-r3eventattributet)
+  - [R3I001 — Prefer generic R3EventAttribute\<T\>](#r3i001--prefer-generic-r3eventattributet)
 - [Requirements](#requirements)
 - [License](#license)
 
@@ -207,15 +207,15 @@ public static Observable<CustomEventArgs> CustomEventAsObservable(
 
 ## Diagnostics
 
-### R3W001 — Prefer generic R3EventAttribute\<T\>
+### R3I001 — Prefer generic R3EventAttribute\<T\>
 
-**Severity:** Warning  
+**Severity:** Info  
 **Applies to:** C# 11 or later
 
-When C# 11 or later is in use, the generator also emits the generic `R3EventAttribute<T>`. Using the non-generic `[R3Event(typeof(T))]` form while a generic alternative is available triggers warning **R3W001** at the attribute site:
+When C# 11 or later is in use, the generator also emits the generic `R3EventAttribute<T>`. Using the non-generic `[R3Event(typeof(T))]` form while a generic alternative is available triggers info diagnostic **R3I001** at the attribute site:
 
 ```
-R3W001  Type 'MyNamespace.MyClassExtensions' uses R3EventAttribute(typeof(T)).
+R3I001  Type 'MyNamespace.MyClassExtensions' uses R3EventAttribute(typeof(T)).
         Consider using R3EventAttribute<T> instead, which is available in C# 11 and later.
 ```
 
@@ -244,7 +244,7 @@ internal static partial class MyClassExtensions { }
 internal static partial class MyClassExtensions { }
 ```
 
-> **Note:** R3W001 is only emitted when the project's C# language version is 11 or later. For C# 8-10, the non-generic `[R3Event(typeof(T))]` form is the only option and no warning is produced.
+> **Note:** R3I001 is only emitted when the project's C# language version is 11 or later. For C# 8-10, the non-generic `[R3Event(typeof(T))]` form is the only option and no info diagnostic is produced.
 
 ## Requirements
 
