@@ -126,4 +126,35 @@ internal static partial class TestExtensions2
         var errors = result.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
         errors.ShouldBeEmpty($"Both attribute variants should work together, but got: {string.Join(", ", errors.Select(e => e.GetMessage()))}");
     }
+
+    [TestMethod]
+    public void GeneratedSource_ShouldUseGlobalQualifiedTypesInCode_AndUserFacingTypesInXml()
+    {
+        // lang=C#-test
+        var source = """
+namespace GenericTest;
+
+public sealed class PayloadModel
+{
+}
+
+public class TestClass
+{
+    public event System.EventHandler<PayloadModel>? ValueChanged;
+}
+
+[R3Events.R3Event<TestClass>]
+internal static partial class TestExtensions
+{
+}
+""";
+
+        var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source, preprocessorSymbols: ["NET7_0_OR_GREATER"]);
+        var extensionSource = generatedSources.Single(s => s.Contains("ValueChangedAsObservable", StringComparison.Ordinal));
+
+        extensionSource.ShouldContain("global::GenericTest.TestClass");
+        extensionSource.ShouldContain("global::GenericTest.PayloadModel");
+        extensionSource.ShouldContain("<see cref=\"GenericTest.PayloadModel\"/>");
+        extensionSource.ShouldNotContain("<see cref=\"global::");
+    }
 }

@@ -30,5 +30,13 @@ namespace R3EventsGenerator.Tests.LegacyLang.Utilities
         {
             return CSharpGeneratorRunnerCore.GetIncrementalGeneratorTrackedStepsReasons(keyPrefixFilter, LanguageVersion.CSharp10, sources);
         }
+
+        /// <summary>
+        /// Runs the generator and returns generated source texts for assertion-focused tests.
+        /// </summary>
+        public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10)
+        {
+            return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options);
+        }
     }
 }
