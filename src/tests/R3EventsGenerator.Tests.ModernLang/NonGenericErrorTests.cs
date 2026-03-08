@@ -26,6 +26,8 @@ public static class IntExtensions
 
         errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
         errors[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
+        errors[0].GetMessage().ShouldContain("ErrorTest.IntExtensions");
+        errors[0].GetMessage().ShouldNotContain("global::");
     }
 
     [TestMethod]
@@ -49,6 +51,8 @@ public static class OuterClass
 
         errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
         errors[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
+        errors[0].GetMessage().ShouldContain("ErrorTest.OuterClass.IntExtensions");
+        errors[0].GetMessage().ShouldNotContain("global::");
     }
 
     [TestMethod]
@@ -69,6 +73,8 @@ public partial class IntExtensions
 
         errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
         errors[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
+        errors[0].GetMessage().ShouldContain("ErrorTest.IntExtensions");
+        errors[0].GetMessage().ShouldNotContain("global::");
     }
 
     [TestMethod]
@@ -89,6 +95,8 @@ public static partial class IntExtensions<T>
 
         errors.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
         errors[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
+        errors[0].GetMessage().ShouldContain("ErrorTest.IntExtensions<T>");
+        errors[0].GetMessage().ShouldNotContain("global::");
     }
 
     [TestMethod]
@@ -114,6 +122,8 @@ internal static partial class TestExtensions
         var r3Infos = result.Where(d => d.Id == "R3I001").ToArray();
         r3Infos.Length.ShouldBe(1, "Generator should produce exactly one R3I001 info diagnostic");
         r3Infos[0].Id.ShouldBe("R3I001", "Diagnostic ID should be R3I001 when non-generic attribute is used with C# 11+");
+        r3Infos[0].GetMessage().ShouldContain("WarnTest.TestExtensions");
+        r3Infos[0].GetMessage().ShouldNotContain("global::");
 
         // The info diagnostic should point to the attribute node, not the class declaration identifier.
         // In the source above, the attribute is on line 7 (0-based) and the class is on line 8.

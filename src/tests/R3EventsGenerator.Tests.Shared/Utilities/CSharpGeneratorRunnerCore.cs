@@ -58,6 +58,37 @@ public static class CSharpGeneratorRunnerCore
     }
 
     /// <summary>
+    /// Runs the source generator and returns generated source texts.
+    /// </summary>
+    public static string[] RunGeneratorAndGetGeneratedSources(
+        string source,
+        LanguageVersion languageVersion,
+        string[]? preprocessorSymbols,
+        AnalyzerConfigOptionsProvider? options)
+    {
+        InitializeCompilation();
+
+        preprocessorSymbols ??= ["NET8_0_OR_GREATER"];
+        var parseOptions = new CSharpParseOptions(languageVersion, preprocessorSymbols: preprocessorSymbols);
+        var driver = CSharpGeneratorDriver.Create(new global::R3EventsGenerator.R3EventsGenerator())
+            .WithUpdatedParseOptions(parseOptions);
+
+        if (options is not null)
+        {
+            driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
+        }
+
+        var compilation = baseCompilation!.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+        driver = (CSharpGeneratorDriver)driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult();
+
+        return runResult.Results
+            .SelectMany(static result => result.GeneratedSources)
+            .Select(static generated => generated.SourceText.ToString())
+            .ToArray();
+    }
+
+    /// <summary>
     /// Runs tracked incremental generator steps and returns reason summaries per tracked key.
     /// </summary>
     public static (string Key, string Reasons)[][] GetIncrementalGeneratorTrackedStepsReasons(
