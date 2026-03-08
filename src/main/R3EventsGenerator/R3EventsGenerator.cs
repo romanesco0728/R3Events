@@ -14,6 +14,15 @@ namespace R3EventsGenerator;
 [Generator(LanguageNames.CSharp)]
 public partial class R3EventsGenerator : IIncrementalGenerator
 {
+    private static readonly SymbolDisplayFormat UserFacingTypeNameFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        miscellaneousOptions:
+            SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+    );
+
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -275,7 +284,8 @@ namespace R3Events
     {
         // Extract method information from the target type
         var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol);
-        var targetTypeFullName = targetTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var targetTypeName = TypeNameView.FromTypeSymbol(targetTypeSymbol);
+        var classNameView = TypeNameView.FromNamedTypeSymbol(classSymbol);
 
         // Get class namespace and name
         var containingNamespace = classSymbol.ContainingNamespace;
@@ -290,9 +300,9 @@ namespace R3Events
         {
             ClassNamespace = classNamespace,
             ClassName = className,
-            ClassDisplayName = BuildClassDisplayName(classSymbol),
+            ClassNameView = classNameView,
             GeneratedMethods = generatedMethods,
-            TargetTypeFullName = targetTypeFullName,
+            TargetTypeName = targetTypeName,
             IsNested = isNested,
             IsStatic = isStatic,
             IsGeneric = isGeneric,
@@ -308,7 +318,7 @@ namespace R3Events
         var partialLocation = classDeclaration.Identifier.GetLocation();
         return new()
         {
-            ClassDisplayName = BuildClassDisplayName(classSymbol),
+            ClassNameView = TypeNameView.FromNamedTypeSymbol(classSymbol),
             IsNested = classDeclaration.Parent is TypeDeclarationSyntax,
             IsStatic = classDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword)),
             IsGeneric = classDeclaration.TypeParameterList is not null,
@@ -318,17 +328,6 @@ namespace R3Events
             AttributeLocation = new(attributeLocation),
             AttributeLocationKey = LocationKey.From(attributeLocation),
         };
-    }
-
-    /// <summary>
-    /// Builds a fully qualified class display name for diagnostics.
-    /// This preserves nested and generic type information that is not available from namespace and name alone.
-    /// </summary>
-    /// <param name="classSymbol">The class symbol to format.</param>
-    /// <returns>The fully qualified display name of the class symbol.</returns>
-    private static string BuildClassDisplayName(INamedTypeSymbol classSymbol)
-    {
-        return classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
     /// <summary>
@@ -380,37 +379,38 @@ namespace R3Events
             payloadType = null;
         }
 
-        string observableElementType;
+        TypeNameView observableElementType;
         bool useAsUnit = false;
         if (isNonGenericSystemEventHandler)
         {
-            //eventType.Name
-            observableElementType = "global::R3.Unit";
+            observableElementType = TypeNameView.Create("global::R3.Unit", "R3.Unit");
             useAsUnit = true;
         }
         else if (payloadType is not null)
         {
-            observableElementType = payloadType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            observableElementType = TypeNameView.FromTypeSymbol(payloadType);
         }
         else
         {
-            observableElementType = "global::System.Object";
+            observableElementType = TypeNameView.Create("global::System.Object", "object");
         }
 
-        var delegateTypeDisplay = eventType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? "global::System.Delegate";
+        var delegateType = eventType is not null
+            ? TypeNameView.FromNamedTypeSymbol(eventType)
+            : TypeNameView.Create("global::System.Delegate", "System.Delegate");
 
         return new()
         {
             EventName = ev.Name,
             ObservableElementType = observableElementType,
             UseAsUnit = useAsUnit,
-            DelegateType = delegateTypeDisplay,
+            DelegateType = delegateType,
         };
     }
 
     /// <summary>
     /// Generates source output for a class decorated with the non-generic R3EventAttribute, and emits a
-    /// <c>R3W001</c> warning when the language version supports the generic attribute (C# 11 or later).
+    /// <c>R3I001</c> info when the language version supports the generic attribute (C# 11 or later).
     /// </summary>
     /// <param name="spc">The source production context used to add generated source and report diagnostics.</param>
     /// <param name="item">The parsed property containing event information and target type details.</param>
@@ -428,7 +428,7 @@ namespace R3Events
             spc.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.PreferGenericAttribute,
                 item.AttributeLocation,
-                item.ClassDisplayName
+                item.ClassNameView.UserFacing
             ));
         }
     }
@@ -465,7 +465,7 @@ namespace R3Events
             return Diagnostic.Create(
                 DiagnosticDescriptors.MustNotBeNested,
                 item.PartialLocation,
-                item.ClassDisplayName
+                item.ClassNameView.UserFacing
                 );
         }
 
@@ -474,7 +474,7 @@ namespace R3Events
             return Diagnostic.Create(
                 DiagnosticDescriptors.MustBeStatic,
                 item.PartialLocation,
-                item.ClassDisplayName
+                item.ClassNameView.UserFacing
                 );
         }
 
@@ -483,7 +483,7 @@ namespace R3Events
             return Diagnostic.Create(
                 DiagnosticDescriptors.MustNotBeGeneric,
                 item.PartialLocation,
-                item.ClassDisplayName
+                item.ClassNameView.UserFacing
                 );
         }
 
@@ -492,7 +492,7 @@ namespace R3Events
             return Diagnostic.Create(
                 DiagnosticDescriptors.MustBePartial,
                 item.PartialLocation,
-                item.ClassDisplayName
+                item.ClassNameView.UserFacing
                 );
         }
 
@@ -527,9 +527,9 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
-        public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var rawObservable = global::R3.Observable.FromEventHandler(
                 h => instance.{{methodInfo.EventName}} += h,
@@ -545,12 +545,12 @@ namespace R3Events
             {
                 var method = $$"""
         /// <summary>
-        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c>.
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
-        public static global::R3.Observable<{{methodInfo.ObservableElementType}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeFullName}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType}}, (global::System.Object?, {{methodInfo.ObservableElementType}} Args)>(
-                h => new {{methodInfo.DelegateType}}((s, e) => h((s, e))),
+            var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType.CodeQualified}}, (global::System.Object?, {{methodInfo.ObservableElementType.CodeQualified}} Args)>(
+                h => new {{methodInfo.DelegateType.CodeQualified}}((s, e) => h((s, e))),
                 h => instance.{{methodInfo.EventName}} += h,
                 h => instance.{{methodInfo.EventName}} -= h,
                 cancellationToken
@@ -607,7 +607,7 @@ partial class {{className}}
         /// <summary>
         /// Gets the name of the element type that is being observed.
         /// </summary>
-        public required string ObservableElementType { get; init; }
+        public required TypeNameView ObservableElementType { get; init; }
         /// <summary>
         /// Gets a value indicating whether to use R3.Unit as the element type for the observable.
         /// </summary>
@@ -615,7 +615,64 @@ partial class {{className}}
         /// <summary>
         /// Gets the fully qualified name of the delegate type used for the event handler.
         /// </summary>
-        public required string DelegateType { get; init; }
+        public required TypeNameView DelegateType { get; init; }
+    }
+
+    /// <summary>
+    /// Carries dual type-name representations for generated code and user-facing text.
+    /// </summary>
+    private sealed record TypeNameView
+    {
+        /// <summary>
+        /// Gets the type name formatted for generated code emission with explicit <c>global::</c> qualification.
+        /// </summary>
+        public required string CodeQualified { get; init; }
+
+        /// <summary>
+        /// Gets the type name formatted for user-facing text such as diagnostics and XML comments.
+        /// </summary>
+        public required string UserFacing { get; init; }
+
+        /// <summary>
+        /// Creates a new type-name view from explicit code and user-facing values.
+        /// </summary>
+        /// <param name="codeQualified">The code-safe representation.</param>
+        /// <param name="userFacing">The user-facing representation.</param>
+        /// <returns>A populated type-name view.</returns>
+        public static TypeNameView Create(string codeQualified, string userFacing)
+        {
+            return new()
+            {
+                CodeQualified = codeQualified,
+                UserFacing = userFacing,
+            };
+        }
+
+        /// <summary>
+        /// Creates a type-name view from a type symbol.
+        /// </summary>
+        /// <param name="symbol">The source symbol.</param>
+        /// <returns>The corresponding type-name view.</returns>
+        public static TypeNameView FromTypeSymbol(ITypeSymbol symbol)
+        {
+            return Create(
+                symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                symbol.ToDisplayString(UserFacingTypeNameFormat)
+            );
+        }
+
+        /// <summary>
+        /// Creates a type-name view from a named type symbol.
+        /// </summary>
+        /// <param name="symbol">The source symbol.</param>
+        /// <returns>The corresponding type-name view.</returns>
+        public static TypeNameView FromNamedTypeSymbol(INamedTypeSymbol symbol)
+        {
+            return Create(
+                symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                symbol.ToDisplayString(UserFacingTypeNameFormat)
+            );
+        }
     }
 
     /// <summary>
@@ -659,15 +716,13 @@ partial class {{className}}
         /// </summary>
         public required EquatableArray<GeneratedMethodInfo> GeneratedMethods { get; init; }
         /// <summary>
-        /// Gets the fully qualified display name of the attributed class used in diagnostics.
-        /// This value preserves nested-type and generic-arity information that cannot be reconstructed
-        /// only from <see cref="ClassNamespace"/> and <see cref="ClassName"/>.
+        /// Gets the attributed class name model containing both code-qualified and user-facing representations.
         /// </summary>
-        public required string ClassDisplayName { get; init; }
+        public required TypeNameView ClassNameView { get; init; }
         /// <summary>
-        /// Gets the fully qualified type name of the target type referenced in the R3EventAttribute.
+        /// Gets the target type name model containing both code-qualified and user-facing representations.
         /// </summary>
-        public required string TargetTypeFullName { get; init; }
+        public required TypeNameView TargetTypeName { get; init; }
         /// <summary>
         /// Gets a value indicating whether the attributed class is nested within another type.
         /// </summary>
@@ -696,11 +751,9 @@ partial class {{className}}
     private sealed record ParsedDiagnosticProperty
     {
         /// <summary>
-        /// Gets the fully qualified display name of the attributed class used in diagnostics.
-        /// This value preserves nested-type and generic-arity information that cannot be reconstructed
-        /// only from namespace and simple type name.
+        /// Gets the attributed class name model containing both code-qualified and user-facing representations.
         /// </summary>
-        public required string ClassDisplayName { get; init; }
+        public required TypeNameView ClassNameView { get; init; }
         /// <summary>
         /// Gets the location of the R3EventAttribute application site (the attribute node in source).
         /// Used to position diagnostics and code-fix actions at the attribute rather than the class declaration.

@@ -54,6 +54,8 @@ public static class IntExtensions
 
             result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
             result[0].Id.ShouldBe("R3E001", "Diagnostic ID should be R3E001 for non-partial class error");
+            result[0].GetMessage().ShouldContain("ErrorTest.IntExtensions");
+            result[0].GetMessage().ShouldNotContain("global::");
         }
 
         [TestMethod]
@@ -78,6 +80,8 @@ public static class OuterClass
 
             result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
             result[0].Id.ShouldBe("R3E002", "Diagnostic ID should be R3E002 for nested class error");
+            result[0].GetMessage().ShouldContain("ErrorTest.OuterClass.IntExtensions");
+            result[0].GetMessage().ShouldNotContain("global::");
         }
 
         [TestMethod]
@@ -99,6 +103,8 @@ public partial class IntExtensions
 
             result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
             result[0].Id.ShouldBe("R3E003", "Diagnostic ID should be R3E003 for non-static class error");
+            result[0].GetMessage().ShouldContain("ErrorTest.IntExtensions");
+            result[0].GetMessage().ShouldNotContain("global::");
         }
 
         [TestMethod]
@@ -120,6 +126,8 @@ public static partial class IntExtensions<T>
 
             result.Length.ShouldBe(1, "Generator should produce exactly one diagnostic");
             result[0].Id.ShouldBe("R3E004", "Diagnostic ID should be R3E004 for generic class error");
+            result[0].GetMessage().ShouldContain("ErrorTest.IntExtensions<T>");
+            result[0].GetMessage().ShouldNotContain("global::");
         }
     }
 }

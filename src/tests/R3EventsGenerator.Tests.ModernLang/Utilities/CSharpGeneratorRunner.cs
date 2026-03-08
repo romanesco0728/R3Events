@@ -30,4 +30,12 @@ internal static class CSharpGeneratorRunner
     {
         return CSharpGeneratorRunnerCore.GetIncrementalGeneratorTrackedStepsReasons(keyPrefixFilter, LanguageVersion.CSharp11, sources);
     }
+
+    /// <summary>
+    /// Runs the generator and returns generated source texts for assertion-focused tests.
+    /// </summary>
+    public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11)
+    {
+        return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options);
+    }
 }

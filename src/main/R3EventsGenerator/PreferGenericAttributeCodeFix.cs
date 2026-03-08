@@ -10,7 +10,7 @@ using R3EventsGenerator.Utilities;
 namespace R3EventsGenerator;
 
 /// <summary>
-/// Provides a code fix for <c>R3W001</c> that replaces the non-generic
+/// Provides a code fix for <c>R3I001</c> that replaces the non-generic
 /// <c>[R3Event(typeof(T))]</c> attribute with the generic <c>[R3Event&lt;T&gt;]</c> form,
 /// which is available in C# 11 and later.
 /// </summary>
@@ -56,7 +56,7 @@ public sealed class PreferGenericAttributeCodeFix : CodeFixProvider
                 title: "Use R3EventAttribute<T> instead",
                 createChangedDocument: ct => ReplaceWithGenericAttributeAsync(
                     context.Document, root, attributeNode, typeOfExpression.Type, ct),
-                equivalenceKey: "R3W001_UseGenericAttribute"
+                equivalenceKey: "R3I001_UseGenericAttribute"
             ),
             diagnostic
         );
