@@ -74,14 +74,14 @@ jobs:
         run: dotnet pack "$CSPROJ_PATH" --configuration Release --no-build --output ./nupkg /p:Version="$PACKAGE_VERSION"
 
       - name: Upload NuGet Package Artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: nupkg
           path: ./nupkg/*.nupkg
           retention-days: 1
 
       - name: Upload DLL Artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: r3events-generator-dll
           path: src/main/R3EventsGenerator/bin/Release/netstandard2.0/R3EventsGenerator.dll
