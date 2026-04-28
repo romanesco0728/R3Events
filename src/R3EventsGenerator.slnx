@@ -2,6 +2,8 @@
   <Folder Name="/sandbox/">
     <Project Path="sandbox/ConsoleApp1/ConsoleApp1.csproj" />
     <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" />
+    <Project Path="sandbox/MarkerAttributeConflictRepro.Library/MarkerAttributeConflictRepro.Library.csproj" />
+    <Project Path="sandbox/MarkerAttributeConflictRepro.Tests/MarkerAttributeConflictRepro.Tests.csproj" />
   </Folder>
   <Folder Name="/main/">
     <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
