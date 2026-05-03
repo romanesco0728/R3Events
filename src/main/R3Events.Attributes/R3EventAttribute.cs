@@ -4,6 +4,7 @@ namespace R3Events;
 /// Marks a static partial class for automatic generation of R3 Observable extension methods
 /// for all public events declared on the specified target type.
 /// </summary>
+/// <param name="type">The target <see cref="Type"/> whose events will be exposed as Observable extension methods.</param>
 /// <remarks>
 /// Prefer the generic variant <see cref="R3EventAttribute{T}"/> when using C# 11 or later.
 /// </remarks>
@@ -15,21 +16,12 @@ namespace R3Events;
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 [System.Diagnostics.Conditional("R3EVENTS_ATTRIBUTE_USAGES")]
-public sealed class R3EventAttribute : Attribute
+public sealed class R3EventAttribute(Type type) : Attribute
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="R3EventAttribute"/> with the specified target type.
-    /// </summary>
-    /// <param name="type">The target <see cref="Type"/> whose events will be exposed as Observable extension methods.</param>
-    public R3EventAttribute(Type type)
-    {
-        Type = type ?? throw new ArgumentNullException(nameof(type));
-    }
-
     /// <summary>
     /// Gets the target type whose events will be exposed as Observable extension methods.
     /// </summary>
-    public Type Type { get; }
+    public Type Type { get; } = type ?? throw new ArgumentNullException(nameof(type));
 }
 
 /// <summary>
