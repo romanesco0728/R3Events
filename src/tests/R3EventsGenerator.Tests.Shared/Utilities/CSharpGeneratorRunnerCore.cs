@@ -167,6 +167,7 @@ public static class CSharpGeneratorRunnerCore
 
         var references = systemAssemblies
             .Append(typeof(global::R3.Observable).Assembly.Location)
+            .Append(typeof(global::R3Events.R3EventAttribute).Assembly.Location)
             .Select(path => MetadataReference.CreateFromFile(path))
             .ToArray();
 

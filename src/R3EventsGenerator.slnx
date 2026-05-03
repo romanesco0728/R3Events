@@ -6,6 +6,7 @@
     <Project Path="sandbox/MarkerAttributeConflictRepro.Tests/MarkerAttributeConflictRepro.Tests.csproj" />
   </Folder>
   <Folder Name="/main/">
+    <Project Path="main/R3Events.Attributes/R3Events.Attributes.csproj" />
     <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
   </Folder>
   <Folder Name="/tests/">
