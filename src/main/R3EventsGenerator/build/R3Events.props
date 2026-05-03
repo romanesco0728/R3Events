@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    Prevent R3Events.Attributes.dll from being copied to the user's output directory.
+    The [Conditional("R3EVENTS_ATTRIBUTE_USAGES")] on the attribute classes ensures
+    that usages are stripped from the emitted IL, so the DLL is only required at
+    compile time and is not needed at runtime.
+  -->
+  <ItemGroup>
+    <PackageReference Update="R3Events" ExcludeAssets="runtime" />
+  </ItemGroup>
+</Project>

@@ -7,7 +7,14 @@ namespace R3Events;
 /// <remarks>
 /// Prefer the generic variant <see cref="R3EventAttribute{T}"/> when using C# 11 or later.
 /// </remarks>
+/// <remarks>
+/// The <see cref="System.Diagnostics.ConditionalAttribute"/> with the symbol
+/// <c>R3EVENTS_ATTRIBUTE_USAGES</c> (which is never defined) causes the compiler to strip
+/// all usages of this attribute from the emitted IL. This means the attribute assembly is only
+/// required at compile time and does not need to be present at runtime.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+[System.Diagnostics.Conditional("R3EVENTS_ATTRIBUTE_USAGES")]
 public sealed class R3EventAttribute : Attribute
 {
     /// <summary>
@@ -33,7 +40,14 @@ public sealed class R3EventAttribute : Attribute
 /// <remarks>
 /// Requires C# 11 or later for generic attribute syntax.
 /// </remarks>
+/// <remarks>
+/// The <see cref="System.Diagnostics.ConditionalAttribute"/> with the symbol
+/// <c>R3EVENTS_ATTRIBUTE_USAGES</c> (which is never defined) causes the compiler to strip
+/// all usages of this attribute from the emitted IL. This means the attribute assembly is only
+/// required at compile time and does not need to be present at runtime.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+[System.Diagnostics.Conditional("R3EVENTS_ATTRIBUTE_USAGES")]
 public sealed class R3EventAttribute<T> : Attribute
 {
 }
