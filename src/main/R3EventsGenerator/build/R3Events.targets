@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Prevent R3Events.Attributes.dll from being copied to the user's output directory.
+    The [Conditional("R3EVENTS_ATTRIBUTE_USAGES")] on the attribute classes ensures
+    that usages are stripped from the emitted IL, so the DLL is only required at
+    compile time and is not needed at runtime.
+
+    We remove R3Events.Attributes from ReferenceCopyLocalPaths after
+    ResolvePackageAssets has run, because PackageReference Update/ExcludeAssets
+    is evaluated too late to affect the restore-phase asset selection.
+  -->
+  <Target Name="ExcludeR3EventsAttributesFromCopyLocal"
+          AfterTargets="ResolveLockFileCopyLocalFiles">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+        Condition="'%(Filename)' == 'R3Events.Attributes'" />
+    </ItemGroup>
+  </Target>
+</Project>
