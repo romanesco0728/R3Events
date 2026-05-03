@@ -7,7 +7,7 @@
     <LangVersion>14</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>false</IsPackable>
-    <AssemblyName>R3Events.Attributes</AssemblyName>
+    <AssemblyName>R3EventsGenerator.Attributes</AssemblyName>
     <RootNamespace>R3Events</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

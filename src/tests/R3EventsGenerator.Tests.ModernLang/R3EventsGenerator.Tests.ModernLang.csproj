@@ -21,7 +21,7 @@
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="../../main/R3Events.Attributes/R3Events.Attributes.csproj" />
+    <ProjectReference Include="../../main/R3EventsGenerator.Attributes/R3EventsGenerator.Attributes.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
