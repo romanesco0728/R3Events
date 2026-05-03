@@ -40,6 +40,4 @@ public sealed class R3EventAttribute(Type type) : Attribute
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 [System.Diagnostics.Conditional("R3EVENTS_ATTRIBUTE_USAGES")]
-public sealed class R3EventAttribute<T> : Attribute
-{
-}
+public sealed class R3EventAttribute<T> : Attribute;
