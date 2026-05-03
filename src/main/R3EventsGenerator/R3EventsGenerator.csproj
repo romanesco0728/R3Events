@@ -13,7 +13,10 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeSymbols>false</IncludeSymbols>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <!-- Do NOT set SuppressDependenciesWhenPacking=true here.
+         lib/netstandard2.0 requires a matching dependency group in the nuspec (NU5128).
+         Instead, mark all PackageReferences with PrivateAssets=all to prevent leaking
+         analyzer-only deps (e.g. Microsoft.CodeAnalysis) to consumers. -->
 
     <IsPackable>true</IsPackable>
     <PackageId>R3Events</PackageId>
@@ -32,8 +35,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
