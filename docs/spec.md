@@ -1,128 +1,133 @@
-仕様: R3Events.R3EventAttribute と自動生成の振る舞い
+# Specification: R3Events.R3EventAttribute and Auto-Generation Behavior
 
-1. 目的
+## 1. Purpose
 
-この仕様は、Incremental Source Generator が生成する属性型 `R3Events.R3EventAttribute` と、その属性を利用した拡張メソッド自動生成の振る舞いを定義します。ジェネレータは、利用側の型が持つ public イベントを検出し、R3 の `global::R3.Observable<T>` を返す拡張メソッドを生成します。
+This specification defines the behavior of the `R3Events.R3EventAttribute` attribute type emitted by the Incremental Source Generator, and the extension-method auto-generation triggered by that attribute. The generator detects public events on the target type and generates extension methods returning `global::R3.Observable<T>`.
 
-2. 属性: R3Events.R3EventAttribute
+## 2. Attribute: R3Events.R3EventAttribute
 
-- 種別: `global::System.Attribute` を継承する internal の sealed クラス
-- 適用対象: 本属性はクラスにのみ付加可能とする。生成コードでは
+- **Kind**: An `internal sealed` class inheriting `global::System.Attribute`.
+- **Target**: Applicable to classes only. Emitted code must declare:
   `global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)`
-  のように指定して出力すること。
-- 名前空間: `R3Events`（生成コードで namespace に合わせる）
+- **Namespace**: `R3Events` (matching the namespace in generated code).
 
-**2.1. 非ジェネリック属性 (C# 8 以降で利用可能)**
+### 2.1. Non-generic attribute (C# 8 and later)
 
-- コンストラクタ: `public R3EventAttribute(global::System.Type type)` — 対象の型を指定
-- プロパティ: `public global::System.Type Type { get; }`
-- 使用例: `[R3EventAttribute(typeof(MyClass))] internal static partial class MyClassExtensions;`
+- Constructor: `public R3EventAttribute(global::System.Type type)` — specifies the target type.
+- Property: `public global::System.Type Type { get; }`
+- Usage: `[R3EventAttribute(typeof(MyClass))] internal static partial class MyClassExtensions;`
 
-**2.2. ジェネリック属性 (C# 11 以降でのみ利用可能)**
+### 2.2. Generic attribute (C# 11 and later only)
 
-- ジェネレータは、プロジェクトの言語バージョンが C# 11 以上の場合に限り、ジェネリック版の属性 `R3EventAttribute<T>` を生成する。
-- コンストラクタ: `public R3EventAttribute()` — 型パラメータ T で対象の型を指定
-- プロパティ: `public global::System.Type Type { get; }` — `typeof(T)` から取得される
-- 使用例: `[R3EventAttribute<MyClass>] internal static partial class MyClassExtensions;`
-- **互換性**: 非ジェネリック属性とジェネリック属性は同一プロジェクト内で共存可能。ジェネレータは両方の形式を認識し、同じ拡張メソッドを生成する。
+- The generator emits the generic variant `R3EventAttribute<T>` only when the project's language version is C# 11 or later.
+- Constructor: `public R3EventAttribute()` — the target type is specified via the type parameter `T`.
+- Property: `public global::System.Type Type { get; }` — derived from `typeof(T)`.
+- Usage: `[R3EventAttribute<MyClass>] internal static partial class MyClassExtensions;`
+- **Compatibility**: Both forms can coexist in the same project. The generator recognizes both and produces identical extension methods.
 
-**言語バージョンの検出**
+### Language-version detection
 
-- ジェネレータは、コンパイル時にプロジェクト内の全ソースファイルの言語バージョンを確認し、最大の言語バージョンが C# 11 以上であればジェネリック属性を生成する。
-- 利用側プロジェクトは C# 8 以上を必須とする（生成コードに null 許容参照型構文を含むため）。
-- C# 8〜10 のプロジェクトでは、ジェネリック属性は生成されず、従来の非ジェネリック属性のみが使用可能となる。
+- At compile time the generator inspects the language version across all source files and emits the generic attribute when the maximum version is C# 11 or later.
+- C# 8 or later is required on the consumer side (generated code contains nullable reference type syntax).
+- On C# 8–10 projects the generic attribute is not emitted; only the non-generic form is available.
 
-- ルール: 生成コード内では公開 API 型参照に必ず `global::` プレフィックスを付与する（global-prefix.instructions.md 準拠）
+> Rule: All public API type references in emitted code must use the `global::` fully-qualified prefix (see `.github/instructions/generator.instructions.md`).
 
-3. ジェネレータのトリガー
+## 3. Generator Trigger
 
-- 利用側プロジェクトで任意の static partial クラスに `R3Events.R3EventAttribute` または `R3Events.R3EventAttribute<T>` を付与する。
+Annotate any `static partial class` in the consuming project with `R3Events.R3EventAttribute` or `R3Events.R3EventAttribute<T>`:
 
-  **非ジェネリック属性の使用例:**
+**Non-generic attribute:**
 
-  ```csharp
-  [R3Events.R3EventAttribute(typeof(C1))]
-  internal static partial class C1Extensions;
+```csharp
+[R3Events.R3EventAttribute(typeof(C1))]
+internal static partial class C1Extensions;
+```
+
+**Generic attribute (C# 11+ only):**
+
+```csharp
+[R3Events.R3EventAttribute<C1>]
+internal static partial class C1Extensions;
+```
+
+Either form causes the generator to inspect all public events on `C1` and emit the corresponding extension methods.
+
+## 4. Shape of Generated Extension Methods
+
+- Naming: `{EventName}AsObservable` for each public event.
+- Signature:
   ```
-
-  **ジェネリック属性の使用例 (C# 11+ のみ):**
-
-  ```csharp
-  [R3Events.R3EventAttribute<C1>]
-  internal static partial class C1Extensions;
+  public static global::R3.Observable<T> {EventName}AsObservable(
+      this global::NamespaceOfTarget.TargetType instance,
+      global::System.Threading.CancellationToken cancellationToken = default)
   ```
+- `T` is resolved as follows:
+  - `EventHandler` or `EventHandler<global::System.EventArgs>` → `global::R3.Unit`
+  - `CancelEventHandler` or other `EventHandler<TEventArgs>` → `TEventArgs` (nullability preserved)
+  - Non-`EventHandler` delegates → the last parameter type (EventArgs-like); falls back to `global::System.Object` when inference is not possible.
+- Implementation uses R3 utilities:
+  - `Observable.FromEventHandler` or `Observable.FromEvent<TDelegate, TPayload>` as appropriate.
+  - Transformations such as `AsUnitObservable()` or `Select(ep => ep.Args)` are applied as needed.
 
-- 上記のいずれかがあると、ジェネレータは型 `C1` の public イベントを解析し、拡張メソッドを生成する。
+## 5. Safety and Nullable Reference Types
 
-4. 生成される拡張メソッドの形
+- Generated code respects nullable reference types.
+- Every generated file must include a file-scoped `#nullable enable` directive. Because generated code uses nullable annotations such as `global::System.Object?` (e.g., the event sender), this directive must be present regardless of the consumer project's nullable setting — omitting it produces CS8669.
+- Public API references in generated code use the `global::` prefix.
+- Generated code uses block-style namespace declarations (`namespace XXX { ... }`) and includes XML doc comments.
+- **Type-name policy**: Type references in generated code bodies (signatures and implementations) retain `global::` for disambiguation. User-facing strings (diagnostic messages and display names inside XML doc comments) omit the `global::` prefix.
 
-- 各 public event に対して、次の命名ルールでメソッドを生成する: `{EventName}AsObservable`
-- メソッドのシグネチャ:
-  - public static global::R3.Observable<T> {EventName}AsObservable(this global::NamespaceOfTarget.TargetType instance, global::System.Threading.CancellationToken cancellationToken = default)
-  - T は次のルールで決定する:
-    - EventHandler または EventHandler<global::System.EventArgs> 系列のイベントは `global::R3.Unit` を返す Observable。
-    - CancelEventHandler や他の EventHandler<TEventArgs> 系列は TEventArgs を返す Observable（nullable をそのまま維持）。
-    - 非 EventHandler 系のデリゲートは、そのデリゲートの最後の引数型（EventArgs 系）を T とする。もし推定できない場合は `global::System.Object` を使用する。
-- 生成されるメソッド本体は、R3 のユーティリティを使った実装を行う。例:
-  - `Observable.FromEventHandler` を使う場合や、`Observable.FromEvent<TDelegate, TPayload>` を使う場合がある。
-  - 必要に応じて `AsUnitObservable()` や `Select(ep => ep.Args)` のような変換を行う。
+## 6. Dependencies
 
-5. 例外と安全性
+- Generated code depends on types in the `global::R3` namespace (primarily `Observable<T>`, `Unit`, and `Observable` utilities).
+- `using` directives may be emitted inside the namespace block when needed, but public API references always use `global::`.
 
-- 生成コードは null 許容参照型を尊重する。
-- 生成ファイルはファイルスコープの `#nullable enable` ディレクティブを必ず含める。生成コードは名前空間の有無にかかわらず `global::System.Object?`（イベント送信者型など）の null 許容アノテーションを使用するため、コンシューマー側の Nullable 設定に依存せず、自動生成ファイル内で明示的に宣言する必要がある（`#nullable enable` なしで `?` アノテーションを含むと CS8669 が発生する）。
-- 生成コードでは公開 API に `global::` プレフィックスを用いる。
-- 生成コードは従来のブロック形式の namespace（namespace XXX { ... }）を使用し、XML ドキュメントコメントを付与する。
-- 型名表記ポリシー: 生成コード本体（シグネチャ・実装）の型参照は曖昧性回避のため `global::` を維持する一方、ユーザー向け文字列（診断メッセージおよび XML ドキュメントコメント内の型名表示）では `global::` プレフィックスを含めない。
+## 7. Testing
 
-6. 依存関係
+- Unit tests must verify that given an input source the generator produces the expected output.
+- Tests must cover diverse event scenarios: nullable events, generic `EventHandler<T>`, and custom delegates.
 
-- 生成コードは `global::R3` 名前空間の型（主に `Observable<T>`, `Unit`, `Observable` ユーティリティ）に依存する。
-- 必要であれば、生成コード内に using を書くが、公開 API 参照は `global::` を使用する。
+## 8. Generated Class and File Naming
 
-7. テスト
+- The generator places extension methods in the same partial class as the one annotated with `R3Events.R3EventAttribute`, using the same namespace and class name so they merge at compile time.  
+  Example: if the annotated class is `internal static partial class C1Extensions`, the generator emits a matching `namespace` and `class C1Extensions` partial declaration.
 
-- ジェネレータのユニットテストは、入力ソースコードを与えて期待される生成コードが出力されることを検証する。
-- イベントの多様なケース（null 許容、Generic EventHandler<T>, カスタムデリゲート）をカバーすること。
+- The generated source file name is formed by joining the namespace and class name with dots and appending `.g.cs`.  
+  Example: namespace `MyApp.Sample`, class `C1Extensions` → file `MyApp.Sample.C1Extensions.g.cs`.
 
-8. 生成クラスとファイル命名
+- This ensures generated code is merged into the same type as the annotated class, preserving visibility and consistency for the consumer.
 
-- 生成される拡張メソッドは、`R3Events.R3EventAttribute` を付与したクラスと同じクラスに配置してください。具体的には、ジェネレータは属性が付与されたクラスと同一の namespace および同一の（partial）クラス宣言内に拡張メソッドを生成して、コンパイル時に利用側のクラスとマージされるようにします。例: 属性を付与した `internal static partial class C1Extensions` があれば、同じ `namespace` と同じ `class` 名で生成を行うこと。
+## 9. Diagnostics
 
-- 生成されるソースファイルのファイル名は、属性が付与されたクラスの名前空間とクラス名をドットで連結し、その末尾に `.g.cs` を付けた名前にしてください。例: 名前空間が `MyApp.Sample`、クラス名が `C1Extensions` の場合、ファイル名は `MyApp.Sample.C1Extensions.g.cs` とします。
+The generator emits two categories of diagnostics: errors and informational messages.
 
-- このルールにより、生成コードは属性を付与したクラスと同じ型に統合され、利用側の可視性と一貫性が確保されます。
+### 9.1. Errors
 
-9. 診断 (Diagnostics)
+| ID     | Condition |
+| ------ | --------- |
+| R3E001 | Target class is not `partial` |
+| R3E002 | Target class is nested |
+| R3E003 | Target class is not `static` |
+| R3E004 | Target class is a generic type |
 
-ジェネレータは、エラーと情報の 2 種類の診断を発行します。
+When any of these errors is reported, no code is generated.
 
-**9.1. エラー**
+### 9.2. Informational
 
-| ID     | 内容                             |
-| ------ | -------------------------------- |
-| R3E001 | 対象クラスが `partial` でない    |
-| R3E002 | 対象クラスがネストされている     |
-| R3E003 | 対象クラスが `static` でない     |
-| R3E004 | 対象クラスがジェネリック型である |
+| ID     | Title | Condition |
+| ------ | ----- | --------- |
+| R3I001 | Prefer generic R3EventAttribute\<T\> | Non-generic `R3EventAttribute(typeof(T))` is used on a project with C# 11 or later |
 
-- 上記エラーが発生した場合、コードの生成は行われない。
+- **R3I001 location**: Reported at the `AttributeSyntax` node (`[R3EventAttribute(typeof(T))]`), not at the class declaration.
+- R3I001 is not reported on C# 8–10 projects (non-generic is the only option there).
+- R3I001 is suppressed when any of R3E001–R3E004 is also reported (errors take priority).
 
-**9.2. 情報**
+### 9.3. Code Fix (R3I001)
 
-| ID     | タイトル                             | 条件                                                                                          |
-| ------ | ------------------------------------ | --------------------------------------------------------------------------------------------- |
-| R3I001 | Prefer generic R3EventAttribute\<T\> | C# 11 以降の言語バージョンで非ジェネリック版 `R3EventAttribute(typeof(T))` を使用している場合 |
+A `CodeFixProvider` quick-fix is provided for R3I001:
 
-- **R3I001** の報告位置: 属性付加されているクラス宣言ではなく、`[R3EventAttribute(typeof(T))]` という記述（`AttributeSyntax`）の位置に報告する。
-- C# 8〜10 では非ジェネリック版が唯一の選択肢であるため、R3I001 は発行されない。
-- R3E001〜R3E004 のいずれかが発行される場合、R3I001 は発行されない（エラーが優先される）。
-
-**9.3. コードフィックス (R3I001)**
-
-R3I001 に対して、IDE のクイックフィックス（`CodeFixProvider`）が提供される。
-
-- 変換内容: `[R3Event(typeof(T))]` → `[R3Event<T>]`
-- 名前空間修飾の保持: `R3Events.R3Event(typeof(T))` → `R3Events.R3Event<T>` のように、修飾子を保持して変換する。
-- `AliasQualifiedNameSyntax`（例: `global::R3Events.R3Event`）にも対応。
-- 複数箇所への一括適用: `WellKnownFixAllProviders.BatchFixer` によりプロジェクト全体への一括修正をサポートする。
+- Transformation: `[R3Event(typeof(T))]` → `[R3Event<T>]`
+- Qualification is preserved: `R3Events.R3Event(typeof(T))` → `R3Events.R3Event<T>`
+- `AliasQualifiedNameSyntax` (e.g., `global::R3Events.R3Event`) is also handled.
+- Bulk fix: `WellKnownFixAllProviders.BatchFixer` supports applying the fix across the entire project at once.
