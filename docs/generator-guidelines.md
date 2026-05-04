@@ -11,6 +11,7 @@
 - 公開 API には XML ドキュメントコメントを付与する。
 - 生成ファイルの名前は `R3Events.Generated.{TargetTypeName}.g.cs` 形式とする。
 - 生成コードでは可能な限り `global::System` の型を使用し、null 許容を尊重する。
+- 生成ファイルの先頭には必ずファイルスコープの `#nullable enable` ディレクティブを含める。生成コードは名前空間の有無にかかわらず `global::System.Object?` などの null 許容アノテーションを使用するため、コンシューマー側プロジェクトの Nullable 設定（enabled/disabled 問わず）に関係なく常に明示する必要がある。
 
 コーディングスタイル
 

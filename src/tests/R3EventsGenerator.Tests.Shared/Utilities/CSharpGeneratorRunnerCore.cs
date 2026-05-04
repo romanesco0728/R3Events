@@ -37,7 +37,8 @@ public static class CSharpGeneratorRunnerCore
         string source,
         LanguageVersion languageVersion,
         string[]? preprocessorSymbols,
-        AnalyzerConfigOptionsProvider? options)
+        AnalyzerConfigOptionsProvider? options,
+        NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
     {
         InitializeCompilation();
 
@@ -51,7 +52,9 @@ public static class CSharpGeneratorRunnerCore
             driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
         }
 
-        var compilation = baseCompilation!.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+        var compilation = baseCompilation!
+            .WithOptions(((CSharpCompilationOptions)baseCompilation!.Options).WithNullableContextOptions(nullableContextOptions))
+            .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out var diagnostics);
 
         return diagnostics.Concat(newCompilation.GetDiagnostics()).ToArray();
@@ -64,7 +67,8 @@ public static class CSharpGeneratorRunnerCore
         string source,
         LanguageVersion languageVersion,
         string[]? preprocessorSymbols,
-        AnalyzerConfigOptionsProvider? options)
+        AnalyzerConfigOptionsProvider? options,
+        NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
     {
         InitializeCompilation();
 
@@ -78,7 +82,9 @@ public static class CSharpGeneratorRunnerCore
             driver = (CSharpGeneratorDriver)driver.WithUpdatedAnalyzerConfigOptions(options);
         }
 
-        var compilation = baseCompilation!.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
+        var compilation = baseCompilation!
+            .WithOptions(((CSharpCompilationOptions)baseCompilation!.Options).WithNullableContextOptions(nullableContextOptions))
+            .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, parseOptions));
         driver = (CSharpGeneratorDriver)driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult();
 

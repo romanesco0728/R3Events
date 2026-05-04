@@ -129,5 +129,91 @@ public static partial class IntExtensions<T>
             result[0].GetMessage().ShouldContain("ErrorTest.IntExtensions<T>");
             result[0].GetMessage().ShouldNotContain("global::");
         }
+
+        [TestMethod]
+        public void GlobalNamespace_WithNullableEnabled_ShouldNotProduceNullableAnnotationWarnings()
+        {
+            // lang=C#-test
+            // Verifies that a non-generic attribute usage in a global-namespace class with a nullable-enabled project
+            // does not produce CS8632 or CS8669. Previously the generated file emitted #nullable disable while
+            // containing System.Object?, triggering CS8669 for auto-generated code.
+            var source = @"
+public class TestClass
+{
+    public event System.EventHandler MyEvent;
+    public event System.EventHandler<string> ValueChanged;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+";
+
+            var result = CSharpGeneratorRunner.RunGenerator(
+                source,
+                nullableContextOptions: Microsoft.CodeAnalysis.NullableContextOptions.Annotations);
+
+            var nullableWarnings = result
+                .Where(d => d.Id == "CS8632" || d.Id == "CS8669")
+                .ToArray();
+            nullableWarnings.ShouldBeEmpty(
+                "Generated code in global namespace should not produce nullable annotation warnings, but got: " +
+                string.Join(", ", nullableWarnings.Select(d => d.Id + ": " + d.GetMessage())));
+        }
+
+        [TestMethod]
+        public void GlobalNamespace_WithNullableDisabled_ShouldNotProduceNullableAnnotationWarnings()
+        {
+            // lang=C#-test
+            // Verifies legacy (nullable-disabled) projects using a global-namespace class do not get
+            // CS8632/CS8669 from the generated file.
+            var source = @"
+public class TestClass
+{
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+";
+
+            var result = CSharpGeneratorRunner.RunGenerator(source);
+
+            var nullableWarnings = result
+                .Where(d => d.Id == "CS8632" || d.Id == "CS8669")
+                .ToArray();
+            nullableWarnings.ShouldBeEmpty(
+                "Generated code in global namespace should not produce nullable annotation warnings in nullable-disabled projects, but got: " +
+                string.Join(", ", nullableWarnings.Select(d => d.Id + ": " + d.GetMessage())));
+        }
+
+        [TestMethod]
+        public void GlobalNamespace_GeneratedSource_ShouldContainNullableEnableDirective()
+        {
+            // lang=C#-test
+            // Verify the generated file for a global-namespace class always declares #nullable enable,
+            // ensuring nullable annotations (e.g., System.Object?) are valid regardless of the consumer's setting.
+            var source = @"
+public class TestClass
+{
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+";
+
+            var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+            generatedSources.ShouldNotBeEmpty("Generator should produce at least one source file");
+            var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+            // Must declare #nullable enable so that System.Object? (sender type) is valid in any consumer project
+            extensionSource.ShouldContain("#nullable enable");
+        }
     }
 }

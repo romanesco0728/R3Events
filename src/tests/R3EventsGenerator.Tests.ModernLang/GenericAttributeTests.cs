@@ -157,4 +157,67 @@ internal static partial class TestExtensions
         extensionSource.ShouldContain("<see cref=\"GenericTest.PayloadModel\"/>");
         extensionSource.ShouldNotContain("<see cref=\"global::");
     }
+
+    [TestMethod]
+    public void GlobalNamespace_WithNullableEnabled_ShouldNotProduceNullableAnnotationWarnings()
+    {
+        // lang=C#-test
+        // Reproduces the ConsoleApp4 scenario: nullable-enabled project, class in global namespace.
+        // Previously the generated file emitted #nullable disable while still containing System.Object?,
+        // which triggered CS8669 for auto-generated code.
+        var source = """
+public class TestClass
+{
+    public event System.EventHandler? MyEvent;
+    public event System.EventHandler<string>? ValueChanged;
+}
+
+[R3Events.R3Event<TestClass>]
+public static partial class TestExtensions
+{
+}
+""";
+
+        var result = CSharpGeneratorRunner.RunGenerator(
+            source,
+            preprocessorSymbols: ["NET7_0_OR_GREATER"],
+            // NullableContextOptions.Enable matches <Nullable>enable</Nullable> — the exact ConsoleApp4 scenario
+            nullableContextOptions: Microsoft.CodeAnalysis.NullableContextOptions.Enable);
+
+        var nullableWarnings = result
+            .Where(d => d.Id is "CS8632" or "CS8669")
+            .ToArray();
+        nullableWarnings.ShouldBeEmpty(
+            $"Generated code in global namespace should not produce nullable annotation warnings, but got: {string.Join(", ", nullableWarnings.Select(d => $"{d.Id}: {d.GetMessage()}"))}");
+    }
+
+    [TestMethod]
+    public void GlobalNamespace_GeneratedSource_ShouldContainNullableEnableDirective()
+    {
+        // lang=C#-test
+        // Verify that the generated file for a global-namespace class always declares #nullable enable,
+        // ensuring nullable annotations in the generated code are valid in any consumer project.
+        // Uses EventHandler<T> to exercise the non-unit path that emits (global::System.Object?, T Args).
+        var source = """
+public class TestClass
+{
+    public event System.EventHandler<string>? ValueChanged;
+}
+
+[R3Events.R3Event<TestClass>]
+public static partial class TestExtensions
+{
+}
+""";
+
+        var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(
+            source,
+            preprocessorSymbols: ["NET7_0_OR_GREATER"]);
+
+        generatedSources.ShouldNotBeEmpty("Generator should produce at least one source file");
+        var extensionSource = generatedSources.Single(s => s.Contains("ValueChangedAsObservable", StringComparison.Ordinal));
+        // Must declare #nullable enable — the generated body uses System.Object? as the event sender type
+        extensionSource.ShouldContain("#nullable enable");
+        extensionSource.ShouldContain("global::System.Object?");
+    }
 }
