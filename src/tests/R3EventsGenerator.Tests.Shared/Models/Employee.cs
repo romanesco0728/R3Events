@@ -5,32 +5,29 @@ public sealed class Employee(string name, string department)
     public event EventHandler? NameChanged;
     public event EventHandler<string>? DepartmentChanged;
 
-    private string? _name = name;
-    private string? _department = department;
-
     public string? Name
     {
-        get => _name;
+        get;
         set
         {
-            if (_name != value)
+            if (field != value)
             {
                 NameChanged?.Invoke(this, EventArgs.Empty);
-                _name = value;
+                field = value;
             }
         }
-    }
+    } = name;
 
     public string? Department
     {
-        get => _department;
+        get;
         set
         {
-            if (_department != value)
+            if (field != value)
             {
                 DepartmentChanged?.Invoke(this, value ?? string.Empty);
-                _department = value;
+                field = value;
             }
         }
-    }
+    } = department;
 }
