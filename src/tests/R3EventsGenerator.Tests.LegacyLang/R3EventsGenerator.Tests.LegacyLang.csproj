@@ -21,5 +21,6 @@
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="../../main/R3EventsGenerator.Attributes/R3EventsGenerator.Attributes.csproj" />
   </ItemGroup>
 </Project>

@@ -114,13 +114,13 @@ control.BeforeCloseAsObservable()
 
 ## R3EventAttribute
 
-When referencing the R3Events package, it generates an internal `R3EventAttribute`:
+When referencing the R3Events package, `R3EventAttribute` is provided as a public type from the `R3Events.Attributes` assembly:
 
 ```csharp
 namespace R3Events
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    internal sealed class R3EventAttribute : Attribute
+    public sealed class R3EventAttribute : Attribute
     {
         public R3EventAttribute(Type type) { ... }
         public Type Type { get; }
@@ -128,13 +128,13 @@ namespace R3Events
 }
 ```
 
-When using C# 11 or later, the generator additionally creates a generic variant:
+When using C# 11 or later, a generic variant is also available:
 
 ```csharp
 namespace R3Events
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    internal sealed class R3EventAttribute<T> : Attribute
+    public sealed class R3EventAttribute<T> : Attribute
     {
     }
 }
@@ -212,7 +212,7 @@ public static Observable<CustomEventArgs> CustomEventAsObservable(
 **Severity:** Info  
 **Applies to:** C# 11 or later
 
-When C# 11 or later is in use, the generator also emits the generic `R3EventAttribute<T>`. Using the non-generic `[R3Event(typeof(T))]` form while a generic alternative is available triggers info diagnostic **R3I001** at the attribute site:
+When C# 11 or later is in use, the generic `R3EventAttribute<T>` is available from the shared attributes assembly. Using the non-generic `[R3Event(typeof(T))]` form while a generic alternative is available triggers info diagnostic **R3I001** at the attribute site:
 
 ```
 R3I001  Type 'MyNamespace.MyClassExtensions' uses R3EventAttribute(typeof(T)).

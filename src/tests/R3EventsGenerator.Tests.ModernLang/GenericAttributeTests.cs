@@ -53,14 +53,14 @@ internal static partial class TestExtensions
 }
 """;
 
-        // Parse with C# 10
+        // When C# 10 is used, the generic attribute syntax ([R3Event<T>]) is not supported
+        // by the language, so using it should cause a compilation error (CS8936).
+        // Note: R3EventAttribute<T> exists in the shared attributes assembly regardless of
+        // language version, but C# 10 does not allow the generic attribute usage syntax.
         var result = CSharpGeneratorRunner.RunGenerator(source, preprocessorSymbols: ["NET6_0_OR_GREATER"], languageVersion: LanguageVersion.CSharp10);
 
-        // When C# 10 is used, the generic attribute type should not exist,
-        // so using it should cause a compilation error
+        // We expect an error because generic attribute syntax requires C# 11 or later
         var errors = result.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
-
-        // We expect an error because R3EventAttribute<T> is not generated for C# 10
         errors.ShouldNotBeEmpty("Should have errors when using generic attribute with C# 10");
     }
 
