@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/sandbox/">
+    <Project Path="ConsoleApp2/ConsoleApp2.csproj" Id="6b39e37d-f7c2-4b91-bfa7-1d4fcbaaca02" />
     <Project Path="sandbox/ConsoleApp1/ConsoleApp1.csproj" />
     <Project Path="sandbox/ConsoleApp_UsingR3/ConsoleApp_UsingR3.csproj" />
     <Project Path="sandbox/MarkerAttributeConflictRepro.Library/MarkerAttributeConflictRepro.Library.csproj" />
@@ -10,8 +11,8 @@
     <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/R3EventsGenerator.Tests.Shared/R3EventsGenerator.Tests.Shared.csproj" />
     <Project Path="tests/R3EventsGenerator.Tests.LegacyLang/R3EventsGenerator.Tests.LegacyLang.csproj" />
     <Project Path="tests/R3EventsGenerator.Tests.ModernLang/R3EventsGenerator.Tests.ModernLang.csproj" />
+    <Project Path="tests/R3EventsGenerator.Tests.Shared/R3EventsGenerator.Tests.Shared.csproj" />
   </Folder>
 </Solution>

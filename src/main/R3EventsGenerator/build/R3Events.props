@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    NuGet and Visual Studio often install source generator packages with
+    IncludeAssets excluding "compile" while keeping "build" and "analyzers".
+    R3Events still needs the marker attribute assembly at compile time, so add
+    an explicit reference from the package's build assets path.
+
+    Private=false keeps this as a compile-time-only reference for the direct
+    package-reference path. ProjectReference-based builds are still handled by
+    R3Events.targets, which removes the attributes assembly from CopyLocal.
+  -->
+  <ItemGroup>
+    <Reference Include="R3EventsGenerator.Attributes"
+               Condition="Exists('$(MSBuildThisFileDirectory)..\lib\netstandard2.0\R3EventsGenerator.Attributes.dll')">
+      <HintPath>$(MSBuildThisFileDirectory)..\lib\netstandard2.0\R3EventsGenerator.Attributes.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
