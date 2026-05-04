@@ -18,9 +18,9 @@ namespace R3EventsGenerator.Tests.LegacyLang.Utilities
         /// <summary>
         /// Runs the generator with legacy defaults used by the compatibility project with lagacy language version.
         /// </summary>
-        public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10)
+        public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10, NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
         {
-            return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options);
+            return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options, nullableContextOptions);
         }
 
         /// <summary>
@@ -34,9 +34,9 @@ namespace R3EventsGenerator.Tests.LegacyLang.Utilities
         /// <summary>
         /// Runs the generator and returns generated source texts for assertion-focused tests.
         /// </summary>
-        public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10)
+        public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp10, NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
         {
-            return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options);
+            return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options, nullableContextOptions);
         }
     }
 }

@@ -18,9 +18,9 @@ internal static class CSharpGeneratorRunner
     /// <summary>
     /// Runs the generator with modern defaults used by the main test project.
     /// </summary>
-    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11)
+    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11, NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
     {
-        return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options);
+        return CSharpGeneratorRunnerCore.RunGenerator(source, languageVersion, preprocessorSymbols, options, nullableContextOptions);
     }
 
     /// <summary>
@@ -34,8 +34,8 @@ internal static class CSharpGeneratorRunner
     /// <summary>
     /// Runs the generator and returns generated source texts for assertion-focused tests.
     /// </summary>
-    public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11)
+    public static string[] RunGeneratorAndGetGeneratedSources(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null, LanguageVersion languageVersion = LanguageVersion.CSharp11, NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
     {
-        return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options);
+        return CSharpGeneratorRunnerCore.RunGeneratorAndGetGeneratedSources(source, languageVersion, preprocessorSymbols, options, nullableContextOptions);
     }
 }
