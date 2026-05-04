@@ -1,19 +1,19 @@
-Incremental Source Generator — Events → R3 Observable
+# Incremental Source Generator — Events → R3 Observable
 
-概要
+## Overview
 
-このプロジェクトのソースジェネレータは、利用側の型が定義する public イベントを自動的に global::R3.Observable<T> を返す拡張メソッドに変換するためのボイラープレートを生成します。生成は、利用側で任意の static partial クラスに `R3Events.R3EventAttribute` を付与することでトリガーされます。
+This project's source generator automatically generates the boilerplate needed to convert public events defined by a target type into extension methods returning `global::R3.Observable<T>`. Generation is triggered by annotating any `static partial class` with `R3Events.R3EventAttribute` in the consuming project.
 
-利用側要件として C# 8 以上が必要です（生成コードが null 許容参照型構文を含むため）。C# 11 以上ではジェネリック属性 `R3Event<T>` も利用できます。
+C# 8 or later is required on the consumer side (generated code contains nullable reference type syntax). C# 11 or later also enables the generic attribute `R3Event<T>`.
 
-目的
+## Goals
 
-- イベント購読のボイラープレートを削減する。
-- 型安全な Observable API を自動生成する。
+- Reduce event-subscription boilerplate.
+- Auto-generate a type-safe Observable API.
 
-このドキュメント配下には、仕様、使用例、及びジェネレータ出力ルールが含まれます。
+This directory contains the specification and usage examples for the generator.
 
-ファイル一覧
+## Files
 
-- `docs/spec.md` - 仕様詳細（診断 R3I001 および コードフィックスの仕様を含む）
-- `docs/examples.md` - 利用例と生成されるコードの例
+- `docs/spec.md` — Detailed specification (including diagnostics R3I001 and the code-fix specification)
+- `docs/examples.md` — Usage examples and generated code samples

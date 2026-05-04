@@ -1,8 +1,8 @@
-使用例と生成コードの例
+# Usage Examples and Generated Code
 
-例 1: 単純な EventHandler (非ジェネリック属性)
+## Example 1: Simple EventHandler (non-generic attribute)
 
-入力ソース:
+Input source:
 
 ```csharp
 class C1
@@ -14,7 +14,7 @@ class C1
 internal static partial class C1Extensions;
 ```
 
-生成されるコード:
+Generated code:
 
 ```csharp
 namespace R3Events.Generated
@@ -40,9 +40,9 @@ namespace R3Events.Generated
 }
 ```
 
-例 1.5: 単純な EventHandler (ジェネリック属性、C# 11+ のみ)
+## Example 1.5: Simple EventHandler (generic attribute, C# 11+ only)
 
-入力ソース:
+Input source:
 
 ```csharp
 class C1
@@ -50,18 +50,18 @@ class C1
     public event EventHandler? MyEvent1;
 }
 
-// C# 11 以降では、型パラメータで対象型を指定できる
+// C# 11 and later: specify the target type via a type parameter
 [R3Events.R3EventAttribute<C1>]
 internal static partial class C1Extensions;
 ```
 
-生成されるコード:
+Generated code:
 
-（例 1 と同じコードが生成される）
+(Same output as Example 1)
 
-例 2: CancelEventHandler
+## Example 2: CancelEventHandler
 
-入力ソース:
+Input source:
 
 ```csharp
 class C1
@@ -73,7 +73,7 @@ class C1
 internal static partial class C1Extensions;
 ```
 
-生成されるコード:
+Generated code:
 
 ```csharp
 namespace R3Events.Generated
