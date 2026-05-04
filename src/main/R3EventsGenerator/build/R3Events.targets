@@ -1,13 +1,12 @@
 <Project>
   <!--
-    Prevent R3EventsGenerator.Attributes.dll from being copied to the user's output directory.
-    The [Conditional("R3EVENTS_ATTRIBUTE_USAGES")] on the attribute classes ensures
-    that usages are stripped from the emitted IL, so the DLL is only required at
-    compile time and is not needed at runtime.
+    Prevent R3EventsGenerator.Attributes.dll from being copied to the user's
+    output directory.
 
-    We remove R3EventsGenerator.Attributes from ReferenceCopyLocalPaths after
-    ResolvePackageAssets has run, because PackageReference Update/ExcludeAssets
-    is evaluated too late to affect the restore-phase asset selection.
+    R3Events.props supplies the compile-time reference for NuGet installs where
+    Visual Studio omits "compile" from IncludeAssets. This target still matters
+    for package/project-reference restore paths where the attributes assembly
+    can otherwise flow into CopyLocal.
   -->
   <Target Name="ExcludeR3EventsAttributesFromCopyLocal"
           AfterTargets="ResolveLockFileCopyLocalFiles">
