@@ -17,4 +17,3 @@ Incremental Source Generator — Events → R3 Observable
 
 - `docs/spec.md` - 仕様詳細（診断 R3I001 および コードフィックスの仕様を含む）
 - `docs/examples.md` - 利用例と生成されるコードの例
-- `docs/generator-guidelines.md` - 生成コードの命名・スタイル・実装上の注意点
