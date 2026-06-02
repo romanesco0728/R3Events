@@ -272,6 +272,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
     private static GeneratedMethodInfo GenerateMethodInfo(IEventSymbol ev)
     {
         var eventType = ev.Type as INamedTypeSymbol;
+        var obsoleteInfo = ExtractObsoleteInfo(ev);
         ITypeSymbol? payloadType = null;
 
         var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } &&
@@ -323,6 +324,47 @@ public partial class R3EventsGenerator : IIncrementalGenerator
             ObservableElementType = observableElementType,
             UseAsUnit = useAsUnit,
             DelegateType = delegateType,
+            ObsoleteInfo = obsoleteInfo,
+        };
+    }
+
+    /// <summary>
+    /// Extracts obsolete metadata from the source event when present.
+    /// </summary>
+    /// <param name="symbol">The event symbol to inspect.</param>
+    /// <returns>The obsolete metadata to propagate, or <see langword="null"/> when the event is not obsolete.</returns>
+    private static GeneratedObsoleteInfo? ExtractObsoleteInfo(ISymbol symbol)
+    {
+        var obsoleteAttribute = symbol.GetAttributes().FirstOrDefault(static attribute =>
+            attribute.AttributeClass is { MetadataName: nameof(global::System.ObsoleteAttribute) } attributeClass &&
+            attributeClass.ContainingNamespace.ToDisplayString() == "System");
+        if (obsoleteAttribute is null)
+        {
+            return null;
+        }
+
+        var constructorArguments = obsoleteAttribute.ConstructorArguments;
+        string? message = null;
+        var hasMessageArgument = false;
+        var isError = false;
+
+        if (constructorArguments.Length >= 1)
+        {
+            message = constructorArguments[0].Value as string;
+            hasMessageArgument = true;
+        }
+
+        if (constructorArguments.Length >= 2 && constructorArguments[1].Value is bool constructorIsError)
+        {
+            isError = constructorIsError;
+        }
+
+        return new()
+        {
+            Message = message,
+            HasMessageArgument = hasMessageArgument,
+            HasErrorArgument = constructorArguments.Length >= 2,
+            IsError = isError,
         };
     }
 
@@ -447,7 +489,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
         /// <summary>
         /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
-        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var rawObservable = global::R3.Observable.FromEventHandler(
                 h => instance.{{methodInfo.EventName}} += h,
@@ -465,7 +507,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
         /// <summary>
         /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
-        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType.CodeQualified}}, (global::System.Object?, {{methodInfo.ObservableElementType.CodeQualified}} Args)>(
                 h => new {{methodInfo.DelegateType.CodeQualified}}((s, e) => h((s, e))),
@@ -511,6 +553,35 @@ partial class {{className}}
         }
     }
 
+    /// <summary>
+    /// Renders an obsolete attribute declaration for a generated method when required.
+    /// </summary>
+    /// <param name="obsoleteInfo">The obsolete metadata to render.</param>
+    /// <returns>A formatted attribute line or an empty string.</returns>
+    private static string RenderObsoleteAttribute(GeneratedObsoleteInfo? obsoleteInfo)
+    {
+        if (obsoleteInfo is null)
+        {
+            return string.Empty;
+        }
+
+        if (!obsoleteInfo.HasMessageArgument)
+        {
+            return "        [global::System.Obsolete]\n";
+        }
+
+        var messageLiteral = obsoleteInfo.Message is null
+            ? "null"
+            : SymbolDisplay.FormatLiteral(obsoleteInfo.Message, quote: true);
+        if (!obsoleteInfo.HasErrorArgument)
+        {
+            return $"        [global::System.Obsolete({messageLiteral})]\n";
+        }
+
+        var isErrorLiteral = obsoleteInfo.IsError ? "true" : "false";
+        return $"        [global::System.Obsolete({messageLiteral}, {isErrorLiteral})]\n";
+    }
+
 
     /// <summary>
     /// Represents metadata describing a generated method for an observable event, including event name, element type,
@@ -534,6 +605,33 @@ partial class {{className}}
         /// Gets the fully qualified name of the delegate type used for the event handler.
         /// </summary>
         public required TypeNameView DelegateType { get; init; }
+        /// <summary>
+        /// Gets the obsolete metadata copied from the source event when present.
+        /// </summary>
+        public required GeneratedObsoleteInfo? ObsoleteInfo { get; init; }
+    }
+
+    /// <summary>
+    /// Represents obsolete metadata copied from the source event for method emission.
+    /// </summary>
+    private sealed record GeneratedObsoleteInfo
+    {
+        /// <summary>
+        /// Gets the obsolete message supplied by the source event, if any.
+        /// </summary>
+        public required string? Message { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the obsolete message argument was explicitly supplied.
+        /// </summary>
+        public required bool HasMessageArgument { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the obsolete error argument was explicitly supplied.
+        /// </summary>
+        public required bool HasErrorArgument { get; init; }
+        /// <summary>
+        /// Gets a value indicating whether the obsolete attribute is an error.
+        /// </summary>
+        public required bool IsError { get; init; }
     }
 
     /// <summary>
