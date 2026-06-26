@@ -1,4 +1,4 @@
-using R3EventsGenerator.Tests.ModernLang.Utilities;
+﻿using R3EventsGenerator.Tests.ModernLang.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Shouldly;
@@ -219,5 +219,31 @@ public static partial class TestExtensions
         // Must declare #nullable enable — the generated body uses System.Object? as the event sender type
         extensionSource.ShouldContain("#nullable enable");
         extensionSource.ShouldContain("global::System.Object?");
+    }
+
+    [TestMethod]
+    public void ObsoleteEvent_WithGenericAttribute_GeneratedSource_ShouldCopyObsoleteAttribute()
+    {
+        // lang=C#-test
+        var source = """
+namespace ObsoleteGenericTest;
+
+public class TestClass
+{
+    [System.Obsolete("Use NewEvent instead", false)]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event<TestClass>]
+public static partial class TestExtensions
+{
+}
+""";
+
+        var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source, preprocessorSymbols: ["NET7_0_OR_GREATER"]);
+
+        generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events with generic attribute");
+        var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+        extensionSource.ShouldContain("[global::System.Obsolete(\"Use NewEvent instead\", false)]");
     }
 }
