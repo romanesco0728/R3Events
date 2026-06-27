@@ -265,16 +265,28 @@ public partial class R3EventsGenerator : IIncrementalGenerator
     /// </returns>
     private static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType, INamedTypeSymbol? obsoleteAttributeType)
     {
-        var methodInfos = new List<GeneratedMethodInfo>();
-        foreach (var member in targetType.GetMembers())
+        var members = targetType.GetMembers();
+
+        var count = 0;
+        foreach (var member in members)
+        {
+            if (member is IEventSymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false })
+                count++;
+        }
+
+        if (count == 0)
+            return new();
+
+        var methodInfos = new GeneratedMethodInfo[count];
+        var index = 0;
+        foreach (var member in members)
         {
             if (member is IEventSymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false } ev)
-            {
-                methodInfos.Add(GenerateMethodInfo(ev, obsoleteAttributeType));
-            }
+                methodInfos[index++] = GenerateMethodInfo(ev, obsoleteAttributeType);
         }
-        methodInfos.Sort(static (a, b) => string.Compare(a.EventName, b.EventName, StringComparison.Ordinal));
-        return new(methodInfos.ToArray());
+
+        Array.Sort(methodInfos, static (a, b) => string.Compare(a.EventName, b.EventName, StringComparison.Ordinal));
+        return new(methodInfos);
     }
 
     private static GeneratedMethodInfo GenerateMethodInfo(IEventSymbol ev, INamedTypeSymbol? obsoleteAttributeType)
