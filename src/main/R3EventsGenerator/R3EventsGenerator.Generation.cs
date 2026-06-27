@@ -121,15 +121,7 @@ partial class R3EventsGenerator
     /// <returns>The obsolete metadata to propagate, or <see langword="null"/> when the event is not obsolete.</returns>
     private static GeneratedObsoleteInfo? ExtractObsoleteInfo(ISymbol symbol, INamedTypeSymbol? obsoleteAttributeType)
     {
-        AttributeData? obsoleteAttribute = null;
-        foreach (var attribute in symbol.GetAttributes())
-        {
-            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, obsoleteAttributeType))
-            {
-                obsoleteAttribute = attribute;
-                break;
-            }
-        }
+        var obsoleteAttribute = FindObsoleteAttribute(symbol, obsoleteAttributeType);
         if (obsoleteAttribute is null)
         {
             return null;
@@ -158,6 +150,26 @@ partial class R3EventsGenerator
             HasErrorArgument = constructorArguments.Length >= 2,
             IsError = isError,
         };
+    }
+
+    /// <summary>
+    /// Searches the symbol's attributes for a <see cref="System.ObsoleteAttribute"/> instance.
+    /// </summary>
+    /// <param name="symbol">The symbol whose attributes are searched.</param>
+    /// <param name="obsoleteAttributeType">The <see cref="System.ObsoleteAttribute"/> type symbol used for identity comparison,
+    /// or <see langword="null"/> if the type could not be resolved from the compilation.</param>
+    /// <returns>The first matching <see cref="AttributeData"/>, or <see langword="null"/> if no obsolete attribute is present.</returns>
+    private static AttributeData? FindObsoleteAttribute(ISymbol symbol, INamedTypeSymbol? obsoleteAttributeType)
+    {
+        foreach (var attribute in symbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, obsoleteAttributeType))
+            {
+                return attribute;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
