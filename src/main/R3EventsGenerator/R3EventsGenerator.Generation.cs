@@ -202,6 +202,9 @@ partial class {{className}}
     /// <summary>
     /// Dispatches to <see cref="BuildUnitMethodSource"/> or <see cref="BuildEventMethodSource"/> based on the event kind.
     /// </summary>
+    /// <param name="methodInfo">Metadata for the event method to generate.</param>
+    /// <param name="targetTypeCodeQualified">The fully-qualified code name of the target type used as the extension method receiver.</param>
+    /// <returns>The generated C# source text for a single <c>AsObservable</c> extension method.</returns>
     private static string BuildMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
     {
         return methodInfo.UseAsUnit
@@ -213,6 +216,9 @@ partial class {{className}}
     /// Builds the source for a single <c>AsObservable</c> extension method that wraps a
     /// non-generic <see cref="System.EventHandler"/> event as an <c>R3.Unit</c> observable.
     /// </summary>
+    /// <param name="methodInfo">Metadata for the event method to generate.</param>
+    /// <param name="targetTypeCodeQualified">The fully-qualified code name of the target type used as the extension method receiver.</param>
+    /// <returns>The generated C# source text for the <c>AsObservable</c> extension method.</returns>
     private static string BuildUnitMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
     {
         return $$"""
@@ -235,6 +241,9 @@ partial class {{className}}
     /// Builds the source for a single <c>AsObservable</c> extension method that wraps a
     /// typed delegate event, projecting the last parameter as the observable element.
     /// </summary>
+    /// <param name="methodInfo">Metadata for the event method to generate.</param>
+    /// <param name="targetTypeCodeQualified">The fully-qualified code name of the target type used as the extension method receiver.</param>
+    /// <returns>The generated C# source text for the <c>AsObservable</c> extension method.</returns>
     private static string BuildEventMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
     {
         return $$"""
