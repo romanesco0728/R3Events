@@ -165,9 +165,7 @@ partial class R3EventsGenerator
 
         foreach (var methodInfo in item.GeneratedMethods)
         {
-            methodsBuilder.AppendLine(methodInfo.UseAsUnit
-                ? BuildUnitMethodSource(methodInfo, targetTypeCodeQualified)
-                : BuildEventMethodSource(methodInfo, targetTypeCodeQualified));
+            methodsBuilder.AppendLine(BuildMethodSource(methodInfo, targetTypeCodeQualified));
         }
 
         // Namespace of the attribute-bearing class. Empty for global namespace.
@@ -199,6 +197,16 @@ partial class {{className}}
 }
 """;
         }
+    }
+
+    /// <summary>
+    /// Dispatches to <see cref="BuildUnitMethodSource"/> or <see cref="BuildEventMethodSource"/> based on the event kind.
+    /// </summary>
+    private static string BuildMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
+    {
+        return methodInfo.UseAsUnit
+            ? BuildUnitMethodSource(methodInfo, targetTypeCodeQualified)
+            : BuildEventMethodSource(methodInfo, targetTypeCodeQualified);
     }
 
     /// <summary>
