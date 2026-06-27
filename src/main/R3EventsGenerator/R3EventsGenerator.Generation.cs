@@ -161,46 +161,14 @@ partial class R3EventsGenerator
     private static string GenerateSource(ParsedGenerationProperty item)
     {
         var methodsBuilder = new StringBuilder();
+        var targetTypeCodeQualified = item.TargetTypeName.CodeQualified;
 
         foreach (var methodInfo in item.GeneratedMethods)
         {
             if (methodInfo.UseAsUnit)
-            {
-                var method = $$"""
-        /// <summary>
-        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
-        /// </summary>
-{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
-        {
-            var rawObservable = global::R3.Observable.FromEventHandler(
-                h => instance.{{methodInfo.EventName}} += h,
-                h => instance.{{methodInfo.EventName}} -= h,
-                cancellationToken
-                );
-            return global::R3.ObservableExtensions.AsUnitObservable(rawObservable);
-        }
-""";
-                methodsBuilder.AppendLine(method);
-            }
+                AppendUnitMethodSource(methodsBuilder, methodInfo, targetTypeCodeQualified);
             else
-            {
-                var method = $$"""
-        /// <summary>
-        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
-        /// </summary>
-{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{item.TargetTypeName.CodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
-        {
-            var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType.CodeQualified}}, (global::System.Object?, {{methodInfo.ObservableElementType.CodeQualified}} Args)>(
-                h => new {{methodInfo.DelegateType.CodeQualified}}((s, e) => h((s, e))),
-                h => instance.{{methodInfo.EventName}} += h,
-                h => instance.{{methodInfo.EventName}} -= h,
-                cancellationToken
-                );
-            return global::R3.ObservableExtensions.Select(rawObservable, ep => ep.Args);
-        }
-""";
-                methodsBuilder.AppendLine(method);
-            }
+                AppendEventMethodSource(methodsBuilder, methodInfo, targetTypeCodeQualified);
         }
 
         // Namespace of the attribute-bearing class. Empty for global namespace.
@@ -232,6 +200,53 @@ partial class {{className}}
 }
 """;
         }
+    }
+
+    /// <summary>
+    /// Appends the source for a single <c>AsObservable</c> extension method that wraps a
+    /// non-generic <see cref="System.EventHandler"/> event as an <c>R3.Unit</c> observable.
+    /// </summary>
+    private static void AppendUnitMethodSource(StringBuilder builder, GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
+    {
+        var method = $$"""
+        /// <summary>
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
+        /// </summary>
+{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{targetTypeCodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var rawObservable = global::R3.Observable.FromEventHandler(
+                h => instance.{{methodInfo.EventName}} += h,
+                h => instance.{{methodInfo.EventName}} -= h,
+                cancellationToken
+                );
+            return global::R3.ObservableExtensions.AsUnitObservable(rawObservable);
+        }
+""";
+        builder.AppendLine(method);
+    }
+
+    /// <summary>
+    /// Appends the source for a single <c>AsObservable</c> extension method that wraps a
+    /// typed delegate event, projecting the last parameter as the observable element.
+    /// </summary>
+    private static void AppendEventMethodSource(StringBuilder builder, GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
+    {
+        var method = $$"""
+        /// <summary>
+        /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
+        /// </summary>
+{{RenderObsoleteAttribute(methodInfo.ObsoleteInfo)}}        public static global::R3.Observable<{{methodInfo.ObservableElementType.CodeQualified}}> {{methodInfo.EventName}}AsObservable(this {{targetTypeCodeQualified}} instance, global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var rawObservable = global::R3.Observable.FromEvent<{{methodInfo.DelegateType.CodeQualified}}, (global::System.Object?, {{methodInfo.ObservableElementType.CodeQualified}} Args)>(
+                h => new {{methodInfo.DelegateType.CodeQualified}}((s, e) => h((s, e))),
+                h => instance.{{methodInfo.EventName}} += h,
+                h => instance.{{methodInfo.EventName}} -= h,
+                cancellationToken
+                );
+            return global::R3.ObservableExtensions.Select(rawObservable, ep => ep.Args);
+        }
+""";
+        builder.AppendLine(method);
     }
 
     /// <summary>
