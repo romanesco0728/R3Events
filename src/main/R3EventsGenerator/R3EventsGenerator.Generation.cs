@@ -46,44 +46,17 @@ partial class R3EventsGenerator
         return new(methodInfos);
     }
 
+    /// <summary>
+    /// Builds the generation model for a single event symbol, including observable element type and delegate information.
+    /// </summary>
+    /// <param name="ev">The event symbol to build information from.</param>
+    /// <param name="obsoleteAttributeType">The <see cref="System.ObsoleteAttribute"/> type symbol used for symbol-based attribute matching.</param>
+    /// <returns>A model instance describing the event and the corresponding <c>AsObservable</c> method to generate.</returns>
     private static GeneratedMethodInfo GenerateMethodInfo(IEventSymbol ev, INamedTypeSymbol? obsoleteAttributeType)
     {
         var eventType = ev.Type as INamedTypeSymbol;
         var obsoleteInfo = ExtractObsoleteInfo(ev, obsoleteAttributeType);
-        ITypeSymbol? payloadType = null;
-
-        var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } &&
-            eventType.ContainingNamespace?.Name is "System" &&
-            eventType.MetadataName is "EventHandler";
-        if (isNonGenericSystemEventHandler)
-        {
-            // EventHandler (non-generic) maps to R3.Unit — no payload extraction needed
-        }
-        else
-        {
-            var invoke = eventType?.DelegateInvokeMethod;
-            if (invoke != null)
-            {
-                var ps = invoke.Parameters;
-                if (ps.Length >= 1) payloadType = ps[^1].Type;
-            }
-        }
-
-        TypeNameView observableElementType;
-        bool useAsUnit = false;
-        if (isNonGenericSystemEventHandler)
-        {
-            observableElementType = TypeNameView.Create("global::R3.Unit", "R3.Unit");
-            useAsUnit = true;
-        }
-        else if (payloadType is not null)
-        {
-            observableElementType = TypeNameView.FromTypeSymbol(payloadType);
-        }
-        else
-        {
-            observableElementType = TypeNameView.Create("global::System.Object", "object");
-        }
+        var (observableElementType, useAsUnit) = DetermineObservableElementType(eventType);
 
         var delegateType = eventType is not null
             ? TypeNameView.FromNamedTypeSymbol(eventType)
@@ -97,6 +70,47 @@ partial class R3EventsGenerator
             DelegateType = delegateType,
             ObsoleteInfo = obsoleteInfo,
         };
+    }
+
+    /// <summary>
+    /// Determines the observable element type and unit-flag for a given event delegate type.
+    /// </summary>
+    /// <remarks>
+    /// Non-generic <see cref="System.EventHandler"/> events map to <c>R3.Unit</c>.
+    /// For all other delegate types, the last parameter of the <c>Invoke</c> method is used
+    /// as the observable element; if no parameters are present, <c>System.Object</c> is used as a fallback.
+    /// </remarks>
+    /// <param name="eventType">The delegate type symbol for the event, or <see langword="null"/> when the type cannot be resolved.</param>
+    /// <returns>
+    /// A tuple of the observable element <see cref="TypeNameView"/> and a flag indicating
+    /// whether the observable should emit <c>R3.Unit</c> instead of the delegate payload.
+    /// </returns>
+    private static (TypeNameView ElementType, bool UseAsUnit) DetermineObservableElementType(INamedTypeSymbol? eventType)
+    {
+        var isNonGenericSystemEventHandler = eventType is { IsGenericType: false } &&
+            eventType.ContainingNamespace?.Name is "System" &&
+            eventType.MetadataName is "EventHandler";
+
+        if (isNonGenericSystemEventHandler)
+        {
+            return (TypeNameView.Create("global::R3.Unit", "R3.Unit"), true);
+        }
+
+        // Try to extract the payload type from the last delegate invoke parameter
+        ITypeSymbol? payloadType = null;
+        var invoke = eventType?.DelegateInvokeMethod;
+        if (invoke != null)
+        {
+            var ps = invoke.Parameters;
+            if (ps.Length >= 1) payloadType = ps[^1].Type;
+        }
+
+        if (payloadType is not null)
+        {
+            return (TypeNameView.FromTypeSymbol(payloadType), false);
+        }
+
+        return (TypeNameView.Create("global::System.Object", "object"), false);
     }
 
     /// <summary>
