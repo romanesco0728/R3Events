@@ -165,10 +165,9 @@ partial class R3EventsGenerator
 
         foreach (var methodInfo in item.GeneratedMethods)
         {
-            if (methodInfo.UseAsUnit)
-                AppendUnitMethodSource(methodsBuilder, methodInfo, targetTypeCodeQualified);
-            else
-                AppendEventMethodSource(methodsBuilder, methodInfo, targetTypeCodeQualified);
+            methodsBuilder.AppendLine(methodInfo.UseAsUnit
+                ? BuildUnitMethodSource(methodInfo, targetTypeCodeQualified)
+                : BuildEventMethodSource(methodInfo, targetTypeCodeQualified));
         }
 
         // Namespace of the attribute-bearing class. Empty for global namespace.
@@ -203,12 +202,12 @@ partial class {{className}}
     }
 
     /// <summary>
-    /// Appends the source for a single <c>AsObservable</c> extension method that wraps a
+    /// Builds the source for a single <c>AsObservable</c> extension method that wraps a
     /// non-generic <see cref="System.EventHandler"/> event as an <c>R3.Unit</c> observable.
     /// </summary>
-    private static void AppendUnitMethodSource(StringBuilder builder, GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
+    private static string BuildUnitMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
     {
-        var method = $$"""
+        return $$"""
         /// <summary>
         /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
@@ -222,16 +221,15 @@ partial class {{className}}
             return global::R3.ObservableExtensions.AsUnitObservable(rawObservable);
         }
 """;
-        builder.AppendLine(method);
     }
 
     /// <summary>
-    /// Appends the source for a single <c>AsObservable</c> extension method that wraps a
+    /// Builds the source for a single <c>AsObservable</c> extension method that wraps a
     /// typed delegate event, projecting the last parameter as the observable element.
     /// </summary>
-    private static void AppendEventMethodSource(StringBuilder builder, GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
+    private static string BuildEventMethodSource(GeneratedMethodInfo methodInfo, string targetTypeCodeQualified)
     {
-        var method = $$"""
+        return $$"""
         /// <summary>
         /// Returns an <see cref="R3.Observable`1"/> for <c>{{methodInfo.EventName}}</c> with payload type <see cref="{{methodInfo.ObservableElementType.UserFacing}}"/>.
         /// </summary>
@@ -246,7 +244,6 @@ partial class {{className}}
             return global::R3.ObservableExtensions.Select(rawObservable, ep => ep.Args);
         }
 """;
-        builder.AppendLine(method);
     }
 
     /// <summary>
