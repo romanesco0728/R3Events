@@ -215,5 +215,163 @@ public static partial class TestExtensions
             // Must declare #nullable enable so that System.Object? (sender type) is valid in any consumer project
             extensionSource.ShouldContain("#nullable enable");
         }
+
+        [TestMethod]
+        public void ObsoleteWarningEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteWarnTest
+{
+
+public class TestClass
+{
+    [System.Obsolete(""Use NewEvent instead"", false)]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+}
+";
+
+            var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+            generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events as well as non-obsolete events");
+            var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+            extensionSource.ShouldContain("[global::System.Obsolete(\"Use NewEvent instead\", false)]");
+        }
+
+        [TestMethod]
+        public void ObsoleteWarningEvent_UsingGeneratedMethod_ShouldReportSingleConsumerWarning()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteWarnTest
+{
+
+public class TestClass
+{
+    [System.Obsolete(""Use NewEvent instead"", false)]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+
+public static class Consumer
+{
+    public static void Subscribe(TestClass instance)
+    {
+        instance.MyEventAsObservable();
+    }
+}
+}
+";
+
+            var result = CSharpGeneratorRunner.RunGenerator(source);
+
+            var obsoleteDiagnostics = result.Where(d => d.Id == "CS0618" || d.Id == "CS0619").ToArray();
+            obsoleteDiagnostics.ShouldHaveSingleItem("Only the consumer call site should report obsolete usage for warning-level events");
+            obsoleteDiagnostics[0].Id.ShouldBe("CS0618", "Warning-level obsolete events should remain warnings on the generated observable method");
+            obsoleteDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
+        }
+
+        [TestMethod]
+        public void ObsoleteErrorEvent_UsingGeneratedMethod_ShouldReportSingleConsumerError()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteErrorTest
+{
+
+public class TestClass
+{
+    [System.Obsolete(""Use NewEvent instead"", true)]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+
+public static class Consumer
+{
+    public static void Subscribe(TestClass instance)
+    {
+        instance.MyEventAsObservable();
+    }
+}
+}
+";
+
+            var result = CSharpGeneratorRunner.RunGenerator(source);
+
+            var obsoleteDiagnostics = result.Where(d => d.Id == "CS0618" || d.Id == "CS0619").ToArray();
+            obsoleteDiagnostics.ShouldHaveSingleItem("Only the consumer call site should report obsolete usage for error-level events");
+            obsoleteDiagnostics[0].Id.ShouldBe("CS0619", "Error-level obsolete events should remain errors on the generated observable method");
+            obsoleteDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
+        }
+
+        [TestMethod]
+        public void ObsoleteNoArgEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteNoArgTest
+{
+
+public class TestClass
+{
+    [System.Obsolete]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+}
+";
+
+            var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+            generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events as well as non-obsolete events");
+            var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+            extensionSource.ShouldContain("[global::System.Obsolete]");
+        }
+
+        [TestMethod]
+        public void ObsoleteMessageOnlyEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteMsgOnlyTest
+{
+
+public class TestClass
+{
+    [System.Obsolete(""Deprecated"")]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+}
+";
+
+            var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+            generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events as well as non-obsolete events");
+            var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+            extensionSource.ShouldContain("[global::System.Obsolete(\"Deprecated\")]");
+        }
     }
 }
