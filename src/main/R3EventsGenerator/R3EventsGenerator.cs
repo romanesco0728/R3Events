@@ -356,8 +356,15 @@ public partial class R3EventsGenerator : IIncrementalGenerator
     /// <returns>The obsolete metadata to propagate, or <see langword="null"/> when the event is not obsolete.</returns>
     private static GeneratedObsoleteInfo? ExtractObsoleteInfo(ISymbol symbol, INamedTypeSymbol? obsoleteAttributeType)
     {
-        var obsoleteAttribute = symbol.GetAttributes().FirstOrDefault(attribute =>
-            SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, obsoleteAttributeType));
+        AttributeData? obsoleteAttribute = null;
+        foreach (var attribute in symbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, obsoleteAttributeType))
+            {
+                obsoleteAttribute = attribute;
+                break;
+            }
+        }
         if (obsoleteAttribute is null)
         {
             return null;

@@ -246,4 +246,30 @@ public static partial class TestExtensions
         var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
         extensionSource.ShouldContain("[global::System.Obsolete(\"Use NewEvent instead\", false)]");
     }
+
+    [TestMethod]
+    public void ObsoleteMessageOnlyEvent_WithGenericAttribute_GeneratedSource_ShouldCopyObsoleteAttribute()
+    {
+        // lang=C#-test
+        var source = """
+namespace ObsoleteMsgOnlyGenericTest;
+
+public class TestClass
+{
+    [System.Obsolete("Deprecated")]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event<TestClass>]
+public static partial class TestExtensions
+{
+}
+""";
+
+        var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source, preprocessorSymbols: ["NET7_0_OR_GREATER"]);
+
+        generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events with generic attribute");
+        var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+        extensionSource.ShouldContain("[global::System.Obsolete(\"Deprecated\")]");
+    }
 }

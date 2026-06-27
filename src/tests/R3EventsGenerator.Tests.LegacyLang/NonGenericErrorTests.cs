@@ -345,5 +345,33 @@ public static partial class TestExtensions
             var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
             extensionSource.ShouldContain("[global::System.Obsolete]");
         }
+
+        [TestMethod]
+        public void ObsoleteMessageOnlyEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
+        {
+            // lang=C#-test
+            var source = @"
+namespace ObsoleteMsgOnlyTest
+{
+
+public class TestClass
+{
+    [System.Obsolete(""Deprecated"")]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+}
+";
+
+            var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+            generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events as well as non-obsolete events");
+            var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+            extensionSource.ShouldContain("[global::System.Obsolete(\"Deprecated\")]");
+        }
     }
 }
