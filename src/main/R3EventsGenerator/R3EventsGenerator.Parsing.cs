@@ -4,7 +4,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace R3EventsGenerator;
 
-partial class R3EventsGenerator
+/// <summary>
+/// Provides parsing methods for extracting attribute and class information used in source generation.
+/// </summary>
+internal static class R3EventsGeneratorParsing
 {
     /// <summary>
     /// Parses the provided generator attribute context to extract property and method information for code generation.
@@ -18,7 +21,7 @@ partial class R3EventsGenerator
     /// <returns>
     /// A <see cref="ParsedGenerationProperty"/> instance containing extracted class metadata and generated method information based on the target type.
     /// </returns>
-    private static ParsedGenerationProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    internal static ParsedGenerationProperty Parse(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -45,7 +48,7 @@ partial class R3EventsGenerator
     /// <returns>
     /// A <see cref="ParsedGenerationProperty"/> instance containing extracted class metadata and generated method information based on the target type.
     /// </returns>
-    private static ParsedGenerationProperty ParseGeneric(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    internal static ParsedGenerationProperty ParseGeneric(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -67,7 +70,7 @@ partial class R3EventsGenerator
     /// <param name="ctx">The generator attribute syntax context containing the target symbol, node, and associated attributes.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
     /// <returns>A <see cref="ParsedDiagnosticProperty"/> instance containing class metadata and location information for diagnostics.</returns>
-    private static ParsedDiagnosticProperty ParseDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    internal static ParsedDiagnosticProperty ParseDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -86,7 +89,7 @@ partial class R3EventsGenerator
     /// <param name="ctx">The generator attribute syntax context containing the target symbol, node, and associated attributes.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
     /// <returns>A <see cref="ParsedDiagnosticProperty"/> instance containing class metadata and location information for diagnostics.</returns>
-    private static ParsedDiagnosticProperty ParseGenericDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+    internal static ParsedDiagnosticProperty ParseGenericDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -113,7 +116,7 @@ partial class R3EventsGenerator
         INamedTypeSymbol? obsoleteAttributeType)
     {
         // Extract method information from the target type
-        var generatedMethods = ExtractGeneratedMethods(targetTypeSymbol, obsoleteAttributeType);
+        var generatedMethods = R3EventsGeneratorGeneration.ExtractGeneratedMethods(targetTypeSymbol, obsoleteAttributeType);
         var targetTypeName = TypeNameView.FromTypeSymbol(targetTypeSymbol);
         var classNameView = TypeNameView.FromNamedTypeSymbol(classSymbol);
 

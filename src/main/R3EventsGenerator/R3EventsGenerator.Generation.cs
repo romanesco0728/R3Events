@@ -5,7 +5,10 @@ using R3EventsGenerator.Utilities;
 
 namespace R3EventsGenerator;
 
-partial class R3EventsGenerator
+/// <summary>
+/// Provides generation helpers that build event metadata and emit generated source text.
+/// </summary>
+internal static class R3EventsGeneratorGeneration
 {
     /// <summary>
     /// Extracts information about all public, non-static events declared in the specified type.
@@ -18,7 +21,7 @@ partial class R3EventsGenerator
     /// An array containing information about each public, non-static event declared in the target type.
     /// The array is ordered by event name and will be empty if no such events are found.
     /// </returns>
-    private static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType, INamedTypeSymbol? obsoleteAttributeType)
+    internal static EquatableArray<GeneratedMethodInfo> ExtractGeneratedMethods(INamedTypeSymbol targetType, INamedTypeSymbol? obsoleteAttributeType)
     {
         var members = targetType.GetMembers();
 
@@ -187,7 +190,7 @@ partial class R3EventsGenerator
     /// <returns>
     /// A string containing the generated C# source code for observable extension methods, including namespace and class declarations as appropriate.
     /// </returns>
-    private static string GenerateSource(ParsedGenerationProperty item)
+    internal static string GenerateSource(ParsedGenerationProperty item)
     {
         var methodsBuilder = new StringBuilder();
         var targetTypeCodeQualified = item.TargetTypeName.CodeQualified;

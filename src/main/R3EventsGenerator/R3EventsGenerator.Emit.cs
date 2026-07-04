@@ -6,7 +6,10 @@ using R3EventsGenerator.Utilities;
 
 namespace R3EventsGenerator;
 
-partial class R3EventsGenerator
+/// <summary>
+/// Provides source emission and declaration-diagnostic helpers for the generator pipeline.
+/// </summary>
+internal static class R3EventsGeneratorEmission
 {
     /// <summary>
     /// Generates source output for a class decorated with the non-generic R3EventAttribute, and emits a
@@ -15,7 +18,7 @@ partial class R3EventsGenerator
     /// <param name="spc">The source production context used to add generated source and report diagnostics.</param>
     /// <param name="item">The parsed property containing event information and target type details.</param>
     /// <param name="languageVersion">The C# language version in use, used to determine whether to suggest the generic attribute.</param>
-    private static void EmitNonGenericDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item, LanguageVersion languageVersion)
+    internal static void EmitNonGenericDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item, LanguageVersion languageVersion)
     {
         if (Diagnose(item) is { } diag)
         {
@@ -38,7 +41,7 @@ partial class R3EventsGenerator
     /// </summary>
     /// <param name="spc">The source production context used to report diagnostics.</param>
     /// <param name="item">The parsed diagnostic property to inspect.</param>
-    private static void EmitDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item)
+    internal static void EmitDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item)
     {
         if (Diagnose(item) is { } diag)
         {
@@ -51,7 +54,7 @@ partial class R3EventsGenerator
     /// </summary>
     /// <param name="spc">The source production context used to add the generated source.</param>
     /// <param name="item">The parsed generation property containing event information and target type details.</param>
-    private static void EmitSourceOutput(SourceProductionContext spc, ParsedGenerationProperty item)
+    internal static void EmitSourceOutput(SourceProductionContext spc, ParsedGenerationProperty item)
     {
         if (HasDeclarationError(item))
         {
@@ -59,7 +62,7 @@ partial class R3EventsGenerator
         }
 
         var hintName = $"{item.HintBaseName}.g.cs";
-        spc.AddSource(hintName, SourceText.From(GenerateSource(item), Encoding.UTF8));
+        spc.AddSource(hintName, SourceText.From(R3EventsGeneratorGeneration.GenerateSource(item), Encoding.UTF8));
     }
 
     /// <summary>

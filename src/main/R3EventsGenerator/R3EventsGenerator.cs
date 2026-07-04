@@ -9,17 +9,8 @@ namespace R3EventsGenerator;
 /// R3EventAttribute, enabling reactive event handling in C# projects.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
-public partial class R3EventsGenerator : IIncrementalGenerator
+public class R3EventsGenerator : IIncrementalGenerator
 {
-    private static readonly SymbolDisplayFormat UserFacingTypeNameFormat = new(
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
-    );
-
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -56,7 +47,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     cancellationToken.ThrowIfCancellationRequested();
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
-                transform: static (ctx, cancellationToken) => Parse(ctx, cancellationToken)
+                transform: static (ctx, cancellationToken) => R3EventsGeneratorParsing.Parse(ctx, cancellationToken)
                 )
             .WithTrackingName("R3Events.NonGeneric.0_CreateSyntaxProvider");
 
@@ -68,7 +59,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     cancellationToken.ThrowIfCancellationRequested();
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
-                transform: static (ctx, cancellationToken) => ParseDiagnostic(ctx, cancellationToken)
+                transform: static (ctx, cancellationToken) => R3EventsGeneratorParsing.ParseDiagnostic(ctx, cancellationToken)
                 )
             .WithTrackingName("R3Events.NonGenericDiag.0_CreateSyntaxProvider");
 
@@ -81,7 +72,7 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     cancellationToken.ThrowIfCancellationRequested();
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
-                transform: static (ctx, cancellationToken) => ParseGeneric(ctx, cancellationToken)
+                transform: static (ctx, cancellationToken) => R3EventsGeneratorParsing.ParseGeneric(ctx, cancellationToken)
                 )
             .WithTrackingName("R3Events.Generic.0_CreateSyntaxProvider");
 
@@ -93,19 +84,19 @@ public partial class R3EventsGenerator : IIncrementalGenerator
                     cancellationToken.ThrowIfCancellationRequested();
                     return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
                 },
-                transform: static (ctx, cancellationToken) => ParseGenericDiagnostic(ctx, cancellationToken)
+                transform: static (ctx, cancellationToken) => R3EventsGeneratorParsing.ParseGenericDiagnostic(ctx, cancellationToken)
                 )
             .WithTrackingName("R3Events.GenericDiag.0_CreateSyntaxProvider");
 
         // Generate source output for each attributed class (non-generic)
-        context.RegisterSourceOutput(source, static (spc, item) => EmitSourceOutput(spc, item));
+        context.RegisterSourceOutput(source, static (spc, item) => R3EventsGeneratorEmission.EmitSourceOutput(spc, item));
         // Report diagnostics/warnings for each attributed class (non-generic), with language version for warning
         var sourceDiagnosticsWithLangVersion = sourceDiagnostics.Combine(languageVersionProvider);
-        context.RegisterSourceOutput(sourceDiagnosticsWithLangVersion, static (spc, pair) => EmitNonGenericDiagnosticsOutput(spc, pair.Left, pair.Right));
+        context.RegisterSourceOutput(sourceDiagnosticsWithLangVersion, static (spc, pair) => R3EventsGeneratorEmission.EmitNonGenericDiagnosticsOutput(spc, pair.Left, pair.Right));
 
         // Generate source output for each attributed class (generic)
-        context.RegisterSourceOutput(genericSource, static (spc, item) => EmitSourceOutput(spc, item));
+        context.RegisterSourceOutput(genericSource, static (spc, item) => R3EventsGeneratorEmission.EmitSourceOutput(spc, item));
         // Report diagnostics for each attributed class (generic)
-        context.RegisterSourceOutput(genericSourceDiagnostics, static (spc, item) => EmitDiagnosticsOutput(spc, item));
+        context.RegisterSourceOutput(genericSourceDiagnostics, static (spc, item) => R3EventsGeneratorEmission.EmitDiagnosticsOutput(spc, item));
     }
 }
