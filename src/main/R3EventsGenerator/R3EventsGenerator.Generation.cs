@@ -102,7 +102,10 @@ partial class R3EventsGenerator
         if (invoke != null)
         {
             var ps = invoke.Parameters;
-            if (ps.Length >= 1) payloadType = ps[^1].Type;
+            if (ps.Length >= 1)
+            {
+                payloadType = ps[^1].Type;
+            }
         }
 
         if (payloadType is not null)

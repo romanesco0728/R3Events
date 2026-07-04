@@ -60,6 +60,13 @@ partial class R3EventsGenerator
         return BuildParsedGenerationProperty(classSymbol, classDeclaration, targetTypeSymbol, obsoleteAttributeType);
     }
 
+    /// <summary>
+    /// Parses the provided generator attribute context (non-generic variant) to extract diagnostic location information.
+    /// </summary>
+    /// <remarks>This method throws an <see cref="OperationCanceledException"/> if the cancellation token is signaled.</remarks>
+    /// <param name="ctx">The generator attribute syntax context containing the target symbol, node, and associated attributes.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
+    /// <returns>A <see cref="ParsedDiagnosticProperty"/> instance containing class metadata and location information for diagnostics.</returns>
     private static ParsedDiagnosticProperty ParseDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -72,6 +79,13 @@ partial class R3EventsGenerator
         return BuildParsedDiagnosticProperty(classSymbol, classDeclaration, attributeLocation);
     }
 
+    /// <summary>
+    /// Parses the provided generator attribute context (generic variant) to extract diagnostic location information.
+    /// </summary>
+    /// <remarks>This method throws an <see cref="OperationCanceledException"/> if the cancellation token is signaled.</remarks>
+    /// <param name="ctx">The generator attribute syntax context containing the target symbol, node, and associated attributes.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the parsing operation.</param>
+    /// <returns>A <see cref="ParsedDiagnosticProperty"/> instance containing class metadata and location information for diagnostics.</returns>
     private static ParsedDiagnosticProperty ParseGenericDiagnostic(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -126,6 +140,13 @@ partial class R3EventsGenerator
         };
     }
 
+    /// <summary>
+    /// Builds a diagnostic property model from class/attribute context shared by generic and non-generic attributes.
+    /// </summary>
+    /// <param name="classSymbol">The attributed class symbol.</param>
+    /// <param name="classDeclaration">The attributed class declaration syntax.</param>
+    /// <param name="attributeLocation">The source location of the attribute application site.</param>
+    /// <returns>A parsed diagnostic property instance used for reporting diagnostics.</returns>
     private static ParsedDiagnosticProperty BuildParsedDiagnosticProperty(
         INamedTypeSymbol classSymbol,
         ClassDeclarationSyntax classDeclaration,

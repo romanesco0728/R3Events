@@ -33,15 +33,24 @@ partial class R3EventsGenerator
         }
     }
 
+    /// <summary>
+    /// Reports any declaration-constraint violations for a class decorated with the generic R3EventAttribute.
+    /// </summary>
+    /// <param name="spc">The source production context used to report diagnostics.</param>
+    /// <param name="item">The parsed diagnostic property to inspect.</param>
     private static void EmitDiagnosticsOutput(SourceProductionContext spc, ParsedDiagnosticProperty item)
     {
         if (Diagnose(item) is { } diag)
         {
             spc.ReportDiagnostic(diag);
-            return;
         }
     }
 
+    /// <summary>
+    /// Emits the generated source file for a class decorated with an R3EventAttribute when the declaration is valid.
+    /// </summary>
+    /// <param name="spc">The source production context used to add the generated source.</param>
+    /// <param name="item">The parsed generation property containing event information and target type details.</param>
     private static void EmitSourceOutput(SourceProductionContext spc, ParsedGenerationProperty item)
     {
         if (HasDeclarationError(item))
@@ -99,6 +108,15 @@ partial class R3EventsGenerator
         return null;
     }
 
+    /// <summary>
+    /// Returns <see langword="true"/> when the attributed class violates a declaration constraint
+    /// and the source generator should skip code emission.
+    /// </summary>
+    /// <param name="item">The parsed generation property to inspect.</param>
+    /// <returns>
+    /// <see langword="true"/> if the class is nested, non-static, generic, or non-partial;
+    /// otherwise <see langword="false"/>.
+    /// </returns>
     private static bool HasDeclarationError(ParsedGenerationProperty item)
     {
         return item.IsNested || !item.IsStatic || item.IsGeneric || !item.IsPartial;
