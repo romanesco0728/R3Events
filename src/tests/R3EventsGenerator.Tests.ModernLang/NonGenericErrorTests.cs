@@ -254,6 +254,70 @@ public static class Consumer
         obsoleteDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
     }
 
+#if !NET48
+    // ObsoleteAttribute.DiagnosticId/UrlFormat only exist on .NET 5+; net48's ObsoleteAttribute lacks them.
+    [TestMethod]
+    public void ObsoleteEventWithDiagnosticId_GeneratedSource_ShouldCopyDiagnosticIdAndUrlFormat()
+    {
+        // lang=C#-test
+        var source = """
+namespace ObsoleteDiagnosticIdTest;
+
+public class TestClass
+{
+    [System.Obsolete("Use NewEvent instead", DiagnosticId = "R3E999", UrlFormat = "https://example.com/{0}")]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+""";
+
+        var generatedSources = CSharpGeneratorRunner.RunGeneratorAndGetGeneratedSources(source);
+
+        generatedSources.ShouldNotBeEmpty("Generator should produce source for obsolete events as well as non-obsolete events");
+        var extensionSource = generatedSources.Single(s => s.Contains("MyEventAsObservable"));
+        extensionSource.ShouldContain("DiagnosticId = \"R3E999\"");
+        extensionSource.ShouldContain("UrlFormat = \"https://example.com/{0}\"");
+    }
+
+    [TestMethod]
+    public void ObsoleteEventWithDiagnosticId_UsingGeneratedMethod_ShouldReportCustomDiagnosticId()
+    {
+        // lang=C#-test
+        var source = """
+namespace ObsoleteDiagnosticIdTest;
+
+public class TestClass
+{
+    [System.Obsolete("Use NewEvent instead", DiagnosticId = "R3E999")]
+    public event System.EventHandler MyEvent;
+}
+
+[R3Events.R3Event(typeof(TestClass))]
+public static partial class TestExtensions
+{
+}
+
+public static class Consumer
+{
+    public static void Subscribe(TestClass instance)
+    {
+        instance.MyEventAsObservable();
+    }
+}
+""";
+
+        var result = CSharpGeneratorRunner.RunGenerator(source);
+
+        var customDiagnostics = result.Where(d => d.Id == "R3E999").ToArray();
+        customDiagnostics.ShouldHaveSingleItem("The consumer call site should report the custom diagnostic ID declared on the source event");
+        customDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
+    }
+#endif
+
     [TestMethod]
     public void ObsoleteNoArgEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
     {
