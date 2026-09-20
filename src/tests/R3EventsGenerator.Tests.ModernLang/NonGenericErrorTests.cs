@@ -254,6 +254,8 @@ public static class Consumer
         obsoleteDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
     }
 
+#if !NET48
+    // ObsoleteAttribute.DiagnosticId/UrlFormat only exist on .NET 5+; net48's ObsoleteAttribute lacks them.
     [TestMethod]
     public void ObsoleteEventWithDiagnosticId_GeneratedSource_ShouldCopyDiagnosticIdAndUrlFormat()
     {
@@ -314,6 +316,7 @@ public static class Consumer
         customDiagnostics.ShouldHaveSingleItem("The consumer call site should report the custom diagnostic ID declared on the source event");
         customDiagnostics[0].GetMessage().ShouldContain("MyEventAsObservable");
     }
+#endif
 
     [TestMethod]
     public void ObsoleteNoArgEvent_GeneratedSource_ShouldCopyObsoleteAttribute()
