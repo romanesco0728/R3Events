@@ -21,4 +21,12 @@ internal sealed record GeneratedObsoleteInfo
     /// Gets a value indicating whether the obsolete attribute is an error.
     /// </summary>
     public required bool IsError { get; init; }
+    /// <summary>
+    /// Gets the custom diagnostic ID supplied via <c>ObsoleteAttribute.DiagnosticId</c>, if any.
+    /// </summary>
+    public required string? DiagnosticId { get; init; }
+    /// <summary>
+    /// Gets the custom help URL format supplied via <c>ObsoleteAttribute.UrlFormat</c>, if any.
+    /// </summary>
+    public required string? UrlFormat { get; init; }
 }

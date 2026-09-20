@@ -149,12 +149,28 @@ internal static class R3EventsGeneratorGeneration
             isError = constructorIsError;
         }
 
+        string? diagnosticId = null;
+        string? urlFormat = null;
+        foreach (var namedArgument in obsoleteAttribute.NamedArguments)
+        {
+            if (namedArgument.Key is "DiagnosticId")
+            {
+                diagnosticId = namedArgument.Value.Value as string;
+            }
+            else if (namedArgument.Key is "UrlFormat")
+            {
+                urlFormat = namedArgument.Value.Value as string;
+            }
+        }
+
         return new()
         {
             Message = message,
             HasMessageArgument = hasMessageArgument,
             HasErrorArgument = constructorArguments.Length >= 2,
             IsError = isError,
+            DiagnosticId = diagnosticId,
+            UrlFormat = urlFormat,
         };
     }
 
@@ -307,9 +323,20 @@ partial class {{className}}
             return string.Empty;
         }
 
+        var namedArguments = new StringBuilder();
+        if (obsoleteInfo.DiagnosticId is not null)
+        {
+            namedArguments.Append($", DiagnosticId = {SymbolDisplay.FormatLiteral(obsoleteInfo.DiagnosticId, quote: true)}");
+        }
+
+        if (obsoleteInfo.UrlFormat is not null)
+        {
+            namedArguments.Append($", UrlFormat = {SymbolDisplay.FormatLiteral(obsoleteInfo.UrlFormat, quote: true)}");
+        }
+
         if (!obsoleteInfo.HasMessageArgument)
         {
-            return "        [global::System.Obsolete]\n";
+            return $"        [global::System.Obsolete{(namedArguments.Length > 0 ? $"(null{namedArguments})" : string.Empty)}]\n";
         }
 
         var messageLiteral = obsoleteInfo.Message is null
@@ -317,10 +344,10 @@ partial class {{className}}
             : SymbolDisplay.FormatLiteral(obsoleteInfo.Message, quote: true);
         if (!obsoleteInfo.HasErrorArgument)
         {
-            return $"        [global::System.Obsolete({messageLiteral})]\n";
+            return $"        [global::System.Obsolete({messageLiteral}{namedArguments})]\n";
         }
 
         var isErrorLiteral = obsoleteInfo.IsError ? "true" : "false";
-        return $"        [global::System.Obsolete({messageLiteral}, {isErrorLiteral})]\n";
+        return $"        [global::System.Obsolete({messageLiteral}, {isErrorLiteral}{namedArguments})]\n";
     }
 }
