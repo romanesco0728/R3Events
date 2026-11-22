@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using R3EventsGenerator.Utilities;
 
 namespace R3EventsGenerator;
 
@@ -18,9 +17,11 @@ namespace R3EventsGenerator;
 [Shared]
 public sealed class PreferGenericAttributeCodeFix : CodeFixProvider
 {
+    const string DiagnosticId = "R3I001";
+
     /// <inheritdoc/>
     public override ImmutableArray<string> FixableDiagnosticIds =>
-        ImmutableArray.Create(DiagnosticDescriptors.PreferGenericAttribute.Id);
+        ImmutableArray.Create(DiagnosticId);
 
     /// <inheritdoc/>
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

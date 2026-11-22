@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/main/">
     <Project Path="main/R3EventsGenerator.Attributes/R3EventsGenerator.Attributes.csproj" />
+    <Project Path="main/R3EventsGenerator.CodeFixes/R3EventsGenerator.CodeFixes.csproj" />
     <Project Path="main/R3EventsGenerator/R3EventsGenerator.csproj" />
   </Folder>
   <Folder Name="/tests/">

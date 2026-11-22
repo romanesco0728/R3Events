@@ -122,35 +122,49 @@ public static class CSharpGeneratorRunnerCore
             .ToArray();
 
         return generatorResults
-            .Select(result => result.TrackedSteps
-                .Where(step =>
-                    step.Key.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ||
-                    step.Key == "SourceOutput")
-                .Select(step =>
-                {
-                    if (step.Key == "SourceOutput")
+            .Select((result, index) =>
+            {
+                var trackedSteps = result.TrackedSteps
+                    .Where(step =>
+                        step.Key.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ||
+                        step.Key == "SourceOutput")
+                    .Select(step =>
                     {
-                        var values = step.Value.Where(value =>
-                            value.Inputs[0].Source.Name?.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ??
-                            false);
+                        if (step.Key == "SourceOutput")
+                        {
+                            var values = step.Value.Where(value =>
+                                value.Inputs[0].Source.Name?.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ??
+                                false);
+
+                            return (
+                                step.Key,
+                                Reasons: string.Join(
+                                    ", ",
+                                    values.SelectMany(value => value.Outputs).Select(output => output.Reason).ToArray())
+                            );
+                        }
 
                         return (
-                            step.Key,
+                            Key: step.Key.Substring(keyPrefixFilter.Length),
                             Reasons: string.Join(
                                 ", ",
-                                values.SelectMany(value => value.Outputs).Select(output => output.Reason).ToArray())
+                                step.Value.SelectMany(value => value.Outputs).Select(output => output.Reason).ToArray())
                         );
-                    }
+                    })
+                    .OrderBy(item => item.Key)
+                    .ToArray();
 
-                    return (
-                        Key: step.Key.Substring(keyPrefixFilter.Length),
-                        Reasons: string.Join(
-                            ", ",
-                            step.Value.SelectMany(value => value.Outputs).Select(output => output.Reason).ToArray())
-                    );
-                })
-                .OrderBy(item => item.Key)
-                .ToArray())
+                var previousRunHadTrackedSteps = index > 0 && generatorResults[index - 1].TrackedSteps
+                    .Any(step =>
+                        step.Key.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ||
+                        step.Key == "SourceOutput");
+
+                // Roslyn omits tracked steps when a subsequent run reuses every cached result.
+                // Only infer an unchanged run if the previous run recorded a matching step.
+                return previousRunHadTrackedSteps && trackedSteps.Length == 0
+                    ? new[] { (Key: "NoTrackedSteps", Reasons: "Unchanged") }
+                    : trackedSteps;
+            })
             .ToArray();
     }
 
