@@ -154,9 +154,14 @@ public static class CSharpGeneratorRunnerCore
                     .OrderBy(item => item.Key)
                     .ToArray();
 
+                var previousRunHadTrackedSteps = index > 0 && generatorResults[index - 1].TrackedSteps
+                    .Any(step =>
+                        step.Key.StartsWith(keyPrefixFilter, global::System.StringComparison.Ordinal) ||
+                        step.Key == "SourceOutput");
+
                 // Roslyn omits tracked steps when a subsequent run reuses every cached result.
-                // Preserve the expected test shape and report that empty run as unchanged.
-                return index > 0 && trackedSteps.Length == 0
+                // Only infer an unchanged run if the previous run recorded a matching step.
+                return previousRunHadTrackedSteps && trackedSteps.Length == 0
                     ? new[] { (Key: "NoTrackedSteps", Reasons: "Unchanged") }
                     : trackedSteps;
             })
