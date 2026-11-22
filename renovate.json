@@ -2,8 +2,18 @@
   "extends": [
     "github>aquaproj/aqua-renovate-config#2.10.0"
   ],
-  "enabledManagers": ["regex"],
+  "enabledManagers": ["github-actions", "nuget", "regex"],
   "packageRules": [
+    {
+      "matchManagers": ["github-actions", "nuget"],
+      "extends": ["schedule:earlyMondays"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchManagers": ["github-actions", "nuget"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    },
     {
       "matchPackageNames": ["aquaproj/aqua-registry"],
       "extends": ["schedule:earlyMondays"]
