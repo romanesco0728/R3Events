@@ -51,10 +51,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            target_framework: net8.0
-          - os: ubuntu-24.04
-            target_framework: net9.0
-          - os: ubuntu-24.04
             target_framework: net10.0
           - os: windows-2025
             target_framework: net48
