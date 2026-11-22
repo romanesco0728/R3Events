@@ -13,7 +13,7 @@ on:
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
-  DOTNET_VERSION: 10.0.x
+  DOTNET_VERSION: 11.0.x
   SLNX_PATH: ${{ github.workspace }}/src/R3EventsGenerator.slnx
 
 defaults:
@@ -52,6 +52,8 @@ jobs:
         include:
           - os: ubuntu-24.04
             target_framework: net10.0
+          - os: ubuntu-24.04
+            target_framework: net11.0
           - os: windows-2025
             target_framework: net48
     permissions:
